@@ -13,6 +13,7 @@ import MoreIcon from '@mui/icons-material/MoreVert';
 import { useAppStore } from "../../appStore";
 import { useNavigate } from 'react-router-dom';
 import LogoutIcon from '@mui/icons-material/Logout';
+import logo from "../../assets/ProsperFleet.png"
 
 
 const AppBar = styled(MuiAppBar, {
@@ -122,7 +123,7 @@ export default function Navbar() {
                         component="div"
                         sx={{ display: { xs: 'none', sm: 'block' } }}
                     >
-                        Sub Mgt
+                        <img src={logo} height={40} alt="logo"/>
                     </Typography>
                     <Box sx={{ flexGrow: 1 }} />
                     <Box sx={{ display: { xs: 'none', md: 'flex' } }}>

@@ -5,7 +5,7 @@ import { getSubscribers, editSubscribers, addSubscribers } from '../../services/
 import {
   Table, TableBody, TableCell, TableContainer, TableHead,
   TableRow, Paper, Button, Dialog, DialogActions, DialogContent,
-  DialogTitle, TextField, Tooltip, Box, Typography, Divider, Stack
+  DialogTitle, TextField, Tooltip, Box, Typography, Divider, Stack, Grid
 } from '@mui/material';
 import Sidenav from '../sidenav/Sidenav';
 import Navbar from '../navbar/Navbar';
@@ -14,7 +14,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 
 const initialValue = {
-  name: '',
+  userName: '',
   email: '',
   phone: ''
 }
@@ -25,7 +25,7 @@ const isValidEmail = (email: string): boolean => {
   return emailRegex.test(email);
 };
 interface ValidationErrors {
-  name: string;
+  userName: string;
   email: string;
   phone: string;
   [key: string]: string;
@@ -38,7 +38,7 @@ const Subscribers = () => {
   const [subscriberData, setSubscriberData] = useState(initialValue);
   const [subscriberId, setSubscriberId] = useState('');
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({
-    name: '',
+    userName: '',
     email: '',
     phone: '',
   });
@@ -58,8 +58,9 @@ const Subscribers = () => {
     setDialogOpen(true);
   };
   const handleDialogClose = () => {
-    setSubscriberData({ name: '', email: '', phone: '' });
-    
+    setValidationErrors({ userName: '', email: '', phone: '' })
+    setSubscriberData({ userName: '', email: '', phone: '' });
+
     setDialogOpen(false);
   };
   const handleInputChange = (e: { target: { name: any; value: any; }; }) => {
@@ -68,7 +69,6 @@ const Subscribers = () => {
 
   };
   const handleSaveUpdate = () => {
-    debugger
     const isValid = validateFields();
     if (isValid) {
       if (mode === 'add') {
@@ -84,7 +84,7 @@ const Subscribers = () => {
   const addSubscriber = async () => {
     const response = addSubscribers(subscriberData);
     setSubscriberList([...subscriberList, (await response).data])
-    setSubscriberData({ name: '', email: '', phone: '' });
+    setSubscriberData({ userName: '', email: '', phone: '' });
     setDialogOpen(false);
   };
 
@@ -100,13 +100,13 @@ const Subscribers = () => {
   }
   const validateFields = (): boolean => {
     const errors: ValidationErrors = {
-      name: '',
+      userName: '',
       email: '',
       phone: ''
     };
 
-    if (!subscriberData.name) {
-      errors.name = 'Name is required.';
+    if (!subscriberData.userName) {
+      errors.userName = 'userName is required.';
     }
 
     if (!subscriberData.email) {
@@ -126,14 +126,14 @@ const Subscribers = () => {
     <>
       <div className='bgcolor'>
         <Navbar />
-        <Box height={70} />
-        <Box sx={{ display: 'flex' }}>
-          <Sidenav />
-          <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
-            <div className='subscribers'>
-              <div className='subscribers-table'>
-                {subscriberList.length > 0 && (
-                  <Paper sx={{ width: "98%", overflow: "hidden", padding: "12px" }}>
+        <div className="subscribers">
+          <Box height={70} />
+          <div className="subscribers-table">
+            <Box sx={{ display: 'flex' }}>
+              <Sidenav />
+              <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+                <Paper sx={{ width: "98%", overflow: "hidden", padding: "12px" }}>
+                  <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'space-between' }}>
                     <Typography
                       gutterBottom
                       variant="h5"
@@ -142,84 +142,86 @@ const Subscribers = () => {
                     >
                       Subscriber List
                     </Typography>
-                    <Divider />
-                    <Box height={10} />
-                    <Stack direction="row" spacing={2} className="my-2 mb-2">
-                      <Typography
-                        variant="h6"
-                        component="div"
-                        sx={{ flexGrow: 1 }}
-                      ></Typography>
+                    <Typography
+                      variant="h6"
+                      component="div"
+                      sx={{ padding: "20px" }}
+                    >
                       <Tooltip title="Add Subscriber">
-                        <Button onClick={handleAddDialogOpen} variant="contained" endIcon={<AddCircleIcon />}>
+                        <Button className='btn' onClick={handleAddDialogOpen} variant="contained" endIcon={<AddCircleIcon />}>
                           Add
                         </Button>
                       </Tooltip>
-                    </Stack>
-                    <Box height={10} />
-                    <TableContainer sx={{ maxHeight: 440 }}>
-                      <Table stickyHeader aria-label="sticky table">
-                        <TableHead>
-                          <TableRow sx={{ fontWeight: "bold" }}>
-                            <TableCell align="left" style={{ minWidth: "100px" }}>
-                              Name
-                            </TableCell>
-                            <TableCell align="left" style={{ minWidth: "100px" }}>
-                              Email
-                            </TableCell>
-                            <TableCell align="left" style={{ minWidth: "100px" }}>
-                              Phone
-                            </TableCell>
-                            <TableCell align="left" style={{ minWidth: "100px" }}>
-                              Action
-                            </TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {subscriberList.map((subscriber: { id: string, userName: string, email: string, phone: string }) => {
-                            return (
-                              <TableRow hover role="checkbox" tabIndex={-1} key={subscriber.id}>
-                                <TableCell align="left">{subscriber.userName}</TableCell>
-                                <TableCell align="left">{subscriber.email}</TableCell>
-                                <TableCell align="left">{subscriber.phone}</TableCell>
-                                <TableCell align="left">
-                                  <Stack spacing={2} direction="row">
-                                    <Tooltip title="Edit Subscribers">
-                                      <EditIcon
+                    </Typography>
+                  </Grid>
+                  <Divider />
+                  <TableContainer sx={{ maxHeight: 440 }} className="subscribers-table">
+                    <Table stickyHeader aria-label="sticky table" >
+                      <TableHead>
+                        <TableRow >
+                          <TableCell align="left" style={{ minWidth: "100px", fontWeight: 'bold' }}>
+                            Name
+                          </TableCell>
+                          <TableCell align="left" style={{ minWidth: "100px", fontWeight: 'bold' }}>
+                            Email
+                          </TableCell>
+                          <TableCell align="left" style={{ minWidth: "100px", fontWeight: 'bold' }}>
+                            Phone
+                          </TableCell>
+                          <TableCell align="left" style={{ minWidth: "100px", fontWeight: 'bold' }}>
+                            Subscriber Action
+                          </TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody className='subscribers'>
+                        {subscriberList.length > 0 ? (subscriberList.map((subscriber: { id: string, userName: string, email: string, phone: string }) => {
+                          return (
+                            <TableRow hover role="checkbox" tabIndex={-1} key={subscriber.id}>
+                              <TableCell align="left">{subscriber.userName}</TableCell>
+                              <TableCell align="left">{subscriber.email}</TableCell>
+                              <TableCell align="left">{subscriber.phone}</TableCell>
+                              <TableCell  >
+                                <Stack spacing={2} direction="row">
+                                  <Tooltip title="Edit Subscribers">
+                                    <EditIcon
+                                      style={{
+                                        fontSize: "20px",
+                                        color: "blue",
+                                        cursor: "pointer",
+                                        marginLeft: 30
+                                      }}
+                                      className="cursor-pointer"
+                                      onClick={() => handleEditSubscriber(subscriber)}
+                                    />
+                                  </Tooltip>
+                                  <Tooltip title="View Subscriptions">
+                                    <Link to={`/subscribers/${subscriber.id}/subscriptions`}>
+                                      <VisibilityIcon
                                         style={{
                                           fontSize: "20px",
-                                          color: "blue",
+                                          color: "darkred",
                                           cursor: "pointer",
                                         }}
-                                        className="cursor-pointer"
-                                        onClick={() => handleEditSubscriber(subscriber)}
                                       />
-                                    </Tooltip>
-                                    <Tooltip title="View Subscriptions">
-                                      <Link to={`/subscribers/${subscriber.id}/subscriptions`}>
-                                        <VisibilityIcon
-                                          style={{
-                                            fontSize: "20px",
-                                            color: "darkred",
-                                            cursor: "pointer",
-                                          }}
-                                        />
-                                      </Link>
-                                    </Tooltip>
-                                  </Stack>
-                                </TableCell>
-                              </TableRow>
-                            );
-                          })}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
-                  </Paper>
-                )}
-              </div>
-            </div>
-          </Box>
-        </Box>
+                                    </Link>
+                                  </Tooltip>
+                                </Stack>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })) : (<TableRow>
+                          <TableCell align="center" sx={{ fontSize: 20, padding: 10 }} colSpan={4}>
+                            No Subscribers Found
+                          </TableCell>
+                        </TableRow>)}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Paper>
+              </Box>
+            </Box>
+          </div>
+        </div>
       </div>
 
 
@@ -230,13 +232,13 @@ const Subscribers = () => {
 
           <TextField
             label="Name"
-            name="name"
-            value={subscriberData.name}
+            name="userName"
+            value={subscriberData.userName}
             onChange={handleInputChange}
             fullWidth
             margin="normal"
-            error={Boolean(validationErrors.name)}
-            helperText={validationErrors.name}
+            error={Boolean(validationErrors.userName)}
+            helperText={validationErrors.userName}
           />
           <TextField
             label="Email"
@@ -261,10 +263,10 @@ const Subscribers = () => {
         </DialogContent>
         <DialogActions>
 
-          <Button onClick={handleSaveUpdate} variant="contained" color="primary">
-            {mode === 'add' ? 'SAVE' : 'UPDATE'}
+          <Button  onClick={handleSaveUpdate} variant="contained" color="primary">
+            {mode === 'add' ? 'ADD' : 'UPDATE'}
           </Button>
-          <Button onClick={handleDialogClose} variant="outlined" color="primary">
+          <Button  onClick={handleDialogClose} variant="outlined" >
             CANCEL
           </Button>
         </DialogActions>

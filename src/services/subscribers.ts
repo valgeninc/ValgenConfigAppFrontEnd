@@ -13,6 +13,7 @@ export const getSubscribers = async (): Promise<ISubscriber[]> => {
     try {
         const response: AxiosResponse<ISubscriber[]> = await instance.get("/result");
         return response.data;
+        
     } catch (error) {
         console.log('Error while calling getUsers api ', error);
         throw error;

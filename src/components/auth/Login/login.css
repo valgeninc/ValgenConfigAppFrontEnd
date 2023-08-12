@@ -1,3 +1,17 @@
+.fixed-background {
+    background: url(/src/assets/balloon-lg.jpg) no-repeat 50% fixed;
+    background-size: cover;
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    justify-content: center;
+}
+
 .login-form {
     display: flex;
     justify-content: center;
@@ -9,8 +23,8 @@
     background-color: #fff;
     box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
     padding: 10px 30px 30px 30px;
-    width: 600px;
-    border-radius:5px;
+    width: 500px;
+    border-radius: 5px;
 }
 
 .login-form-header {
@@ -46,5 +60,33 @@
 
 .button {
     margin: 0 5px 0 0;
+}
 
+.btn {
+    border-color: #59bdd2 ! important;
+    border-radius: 20px !important;
+    line-height: 1.5 !important;
+    font-weight: 700 !important;
+    letter-spacing: .05rem !important;
+
+}
+
+.btn:hover {
+    color: #fff !important;
+}
+
+.login-btn {
+    background-color: #59bdd2 !important;
+    color: #fff !important;
+    padding: 0.6rem 2.5rem !important;
+}
+
+.cancel-btn {
+    color: #59bdd2 !important;
+    padding: 0.6rem 1.5rem !important;
+    background-color: #fff !important;
+}
+
+.cancel-btn:hover {
+    color: #59bdd2 !important;
 }

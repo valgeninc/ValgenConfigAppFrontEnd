@@ -1,4 +1,4 @@
-.container1{
-  background: rgb(249, 247, 243);
-  margin-top: 10%;
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,200&display=swap');
+*{
+  font-family: "Nunito",sans-serif !important;
 }

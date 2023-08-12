@@ -1,5 +1,13 @@
-.bgcolor{
+.bgcolor {
     min-height: 100vh;
     background: #ECEFF1;
-    background: linear-gradient(158deg,rgba(224,224,224) 0%,rrgb(233,237,254) 100%);
+    background: linear-gradient(158deg, rgba(224, 224, 224) 0%, rrgb(233, 237, 254) 100%);
+}
+
+.configuration {
+    border: 1px solid rgb(227, 222, 222);
+    padding: 2rem;
+    background: #fff;
+    border-radius: 5px;
+    box-shadow: 0 1px 15px rgba(0, 0, 0, .04), 0 1px 6px rgba(0, 0, 0, .04);
 }

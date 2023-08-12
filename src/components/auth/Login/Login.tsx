@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { TextField, Button, Typography, Stack } from "@mui/material";
 import "./login.css";
 import { useNavigate } from "react-router-dom";
+import logo from "../../../assets/ProsperFleet.png"
 
 interface ValidationErrors {
   username: string;
@@ -39,41 +40,44 @@ const Login = () => {
   };
 
   const Login = (event: React.FormEvent) => {
-    event.preventDefault();
+    // event.preventDefault();
     validateForm();
     if (isFormValid) {
       navigate("/subscribers");
     }
   };
   return (
-    <div className="login-form">
-      <div className="login-form-box">
-        <div className="login-form-header">
-          <Typography variant="h2">Login</Typography>
+    <div className="fixed-background">
+      <div className="login-form">
+        <div className="login-form-box">
+          <img src={logo} alt="logo" />
+          <div className="login-form-header">
+            <Typography variant="h2">Login</Typography>
+          </div>
+          <form action="">
+            <div className="input-item">
+              <TextField fullWidth variant="outlined" label="User Name" value={username}
+                onChange={handleUsernameChange}
+                error={!!validationErrors.username}
+                helperText={validationErrors.username} />
+            </div>
+            <div className="input-item">
+              <TextField
+                fullWidth
+                type="password"
+                variant="outlined"
+                label="Password" value={password}
+                onChange={handlePasswordChange}
+                error={!!validationErrors.password}
+                helperText={validationErrors.password}
+              />
+            </div>
+            <Stack spacing={2} direction="row">
+              <Button className="btn login-btn" onClick={Login}> Login</Button>
+              <Button className="btn cancel-btn" variant="outlined" color="primary"> CANCEL</Button>
+            </Stack>
+          </form>
         </div>
-        <form action="">
-          <div className="input-item">
-            <TextField fullWidth variant="outlined" label="User Name" value={username}
-              onChange={handleUsernameChange}
-              error={!!validationErrors.username}
-              helperText={validationErrors.username} />
-          </div>
-          <div className="input-item">
-            <TextField
-              fullWidth
-              type="password"
-              variant="outlined"
-              label="Password" value={password}
-              onChange={handlePasswordChange}
-              error={!!validationErrors.password}
-              helperText={validationErrors.password}
-            />
-          </div>
-          <Stack spacing={2} direction="row">
-            <Button variant="contained" color="primary" onClick={Login}> OK</Button>
-            <Button variant="outlined" color="primary"> CANCEL</Button>
-          </Stack>
-        </form>
       </div>
     </div>
   );
