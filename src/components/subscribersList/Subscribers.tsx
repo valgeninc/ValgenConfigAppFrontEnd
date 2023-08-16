@@ -12,7 +12,7 @@ import Navbar from '../navbar/Navbar';
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import EditIcon from "@mui/icons-material/Edit";
 import VisibilityIcon from '@mui/icons-material/Visibility';
-
+import {subscriberResultData} from "../../SubscriberData";
 const initialValue = {
   userName: '',
   email: '',
@@ -46,6 +46,7 @@ const Subscribers = () => {
 
   useEffect(() => {
     getAllUsers();
+    // setSubscriberList(subscriberResultData);
   }, []);
 
   const getAllUsers = async () => {
@@ -228,8 +229,8 @@ const Subscribers = () => {
       {/* Dialog for adding a new subscriber */}
       <Dialog open={isDialogOpen} onClose={handleDialogClose}>
         <DialogTitle>Subscriber Details</DialogTitle>
+        <Divider/>
         <DialogContent>
-
           <TextField
             label="Name"
             name="userName"
@@ -261,8 +262,8 @@ const Subscribers = () => {
             helperText={validationErrors.phone}
           />
         </DialogContent>
+        <Divider/>
         <DialogActions>
-
           <Button  onClick={handleSaveUpdate} variant="contained" color="primary">
             {mode === 'add' ? 'ADD' : 'UPDATE'}
           </Button>

@@ -11,3 +11,20 @@
     border-radius: 5px;
     box-shadow: 0 1px 15px rgba(0, 0, 0, .04), 0 1px 6px rgba(0, 0, 0, .04);
 }
+
+.status {
+    border: 1px solid rgb(227, 222, 222);
+    padding: 0 0.5rem;
+    border-radius: 5px;
+    width: max-content;
+}
+
+.active-status {
+    background: rgb(82, 134, 50);
+    color: #fff;
+}
+
+.inactive-status {
+    background: rgb(227, 222, 222);
+    color: rgb(8, 8, 8);
+}

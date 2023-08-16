@@ -1,4 +1,4 @@
-import { Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Box, Typography, Divider, Stack, Dialog, DialogContent, TextField, DialogActions, Grid, Autocomplete, Checkbox } from '@mui/material'
+import { Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Box, Typography, Divider, Stack, Dialog, DialogContent, TextField, DialogActions, Grid, Autocomplete, Checkbox, DialogTitle, Switch, AppBar, Toolbar, IconButton } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import axios from 'axios';
@@ -14,6 +14,9 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import "./subscription.css"
+import CloseIcon from '@mui/icons-material/Close';
+import { subscriberResultData } from "../../SubscriberData";
+import Subscribers from '../subscribersList/Subscribers';
 const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
 const checkedIcon = <CheckBoxIcon fontSize="small" />;
 
@@ -22,23 +25,23 @@ const initialValue: SubscriptionData = {
   subscriberId: '',
   startDate: '',
   endDate: "",
-  maxRequests: 0,
-  timeWindow: 0,
+  maxRequests: undefined,
+  timeWindow: undefined,
   createSubscriptionServicesModel: [
     {
       endPointDesc: "",
-      companyRecords: 0,
-      locationRecords: 0,
-      addtionalCompanyRecords: 0,
-      addtionalLocationRecords: 0,
+      companyRecords: undefined,
+      locationRecords: undefined,
+      addtionalCompanyRecords: undefined,
+      addtionalLocationRecords: undefined,
       columns: []
     },
     {
       endPointDesc: "",
-      companyRecords: 0,
-      locationRecords: 0,
-      addtionalCompanyRecords: 0,
-      addtionalLocationRecords: 0,
+      companyRecords: undefined,
+      locationRecords: undefined,
+      addtionalCompanyRecords: undefined,
+      addtionalLocationRecords: undefined,
       columns: []
     },
   ]
@@ -51,16 +54,16 @@ interface SubscriptionData {
   subscriberId: string;
   startDate: string;
   endDate: string;
-  maxRequests: number;
-  timeWindow: number;
+  maxRequests: number | undefined;
+  timeWindow: number | undefined;
   createSubscriptionServicesModel: ServiceModel[];
 }
 interface ServiceModel {
   endPointDesc: string;
-  companyRecords: number;
-  locationRecords: number;
-  addtionalCompanyRecords: number;
-  addtionalLocationRecords: number;
+  companyRecords: number | undefined;
+  locationRecords: number | undefined;
+  addtionalCompanyRecords: number | undefined;
+  addtionalLocationRecords: number | undefined;
   columns: FilmOption[];
 }
 
@@ -71,6 +74,9 @@ const SubscriptionList = () => {
   const [subscriptionData, setSubscriptionData] = useState(initialValue);
   const [mode, setMode] = useState('add');
   const navigate = useNavigate();
+  const [isAnoymizedAdditionalPull, setIsAnoymizedAdditionalPull] = useState(false);
+  const [isIdentifiedAdditionalPull, setIsIdentifiedAdditionalPull] = useState(false);
+  const [isSubscriptionStatus, setIsSubscriptionStatus] = useState(false);
 
   useEffect(() => {
     axios.get(`http://localhost:3030/result/${subscriberId}`)
@@ -79,20 +85,28 @@ const SubscriptionList = () => {
       })
       .catch(err => console.log(err))
     console.log(subscriptionData.createSubscriptionServicesModel);
+    // subscriberResultData.forEach((subscriber:any) => {
+    //   if(subscriber.id === subscriberId ){
+    //     setsubscriptionList(subscriber.subscriptions);
+    //     console.log(subscriber.subscriptions);
+    //   }
+    // });
   }, [subscriberId, subscriptionData.createSubscriptionServicesModel]);
 
   const handleDialogClose = () => {
-
     setDialogOpen(false);
+    setSubscriptionData(initialValue);
   };
   const handleAddDialogOpen = () => {
     setMode('add');
     setDialogOpen(true);
   };
+  const handleEditDialogOpen = () => {
+    setMode('edit');
+    setDialogOpen(true);
+  };
   const handleInputChange = (e: any) => {
-
     const { name, value } = e.target;
-    debugger
     setSubscriptionData((prevData) => ({
       ...prevData,
       [name]: value
@@ -136,19 +150,24 @@ const SubscriptionList = () => {
 
     console.log(payload);
   }
+  const editSubscriber = () => {
+
+  }
   const handleSaveUpdate = () => {
     // const isValid = validateFields();
     // if (isValid) {
     if (mode === 'add') {
       addSubscription();
     } else if (mode === 'edit') {
-      // editSubscriber();
+      editSubscriber();
     }
     handleDialogClose();
     // }
 
   };
-
+  const handleChangeStatus = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setIsSubscriptionStatus(true);
+  }
   const top100Films = [
     { title: 'The Shawshank Redemption', year: 1994 },
     { title: 'The Godfather', year: 1972 },
@@ -196,30 +215,23 @@ const SubscriptionList = () => {
               <Divider />
               <Box height={10} />
               <Stack direction="row" spacing={2} className="my-2 mb-2">
-
               </Stack>
               <Box height={10} />
               <TableContainer sx={{ maxHeight: 440 }}>
                 <Table stickyHeader aria-label="sticky table">
                   <TableHead>
                     <TableRow sx={{ fontWeight: "bold" }}>
-                      {/* <TableCell align="left" style={{ minWidth: "100px", fontWeight: 'bold' }}>
-                        Subscriber Max Records
-                      </TableCell>
-                      <TableCell align="left" style={{ minWidth: "100px", fontWeight: 'bold' }}>
-                        Time(in seconds)
-                      </TableCell> */}
-                      <TableCell align="left" style={{ minWidth: "100px", fontWeight: 'bold' }}>
+                      <TableCell align="center" style={{ minWidth: "100px", fontWeight: 'bold' }}>
                         Start Date
                       </TableCell>
-                      <TableCell align="left" style={{ minWidth: "100px", fontWeight: 'bold' }}>
+                      <TableCell align="center" style={{ minWidth: "100px", fontWeight: 'bold' }}>
                         End Date
                       </TableCell>
-                      <TableCell align="left" style={{ minWidth: "100px", fontWeight: 'bold' }}>
+                      <TableCell align="center" style={{ minWidth: "100px", fontWeight: 'bold' }}>
                         Token
                       </TableCell>
-                      <TableCell align="center" style={{ minWidth: "100px", fontWeight: 'bold' }}>
-
+                      <TableCell align="center" style={{ minWidth: "80px", fontWeight: 'bold' }}>
+                        Subscription Status
                       </TableCell>
                       <TableCell align="center" style={{ minWidth: "100px", fontWeight: 'bold' }}>
                         Subscription Action
@@ -230,18 +242,22 @@ const SubscriptionList = () => {
                     {subscriptionList && subscriptionList.length > 0 ? subscriptionList.map((subscription: { max_records: number, time_seconds: number, start_time: string, end_time: string, token: string, isActive: boolean }) => {
                       return (
                         <TableRow hover role="checkbox" tabIndex={-1} key={subscription.token}>
-                          {/* <TableCell align="left">{subscription.max_records}</TableCell>
-                          <TableCell align="left">{subscription.time_seconds}</TableCell> */}
-                          <TableCell align="left">{dayjs(subscription.start_time).format('DD-MM-YYYY')}</TableCell>
-                          <TableCell align="left">{dayjs(subscription.end_time).format('DD-MM-YYYY')}</TableCell>
-                          <TableCell align="left">{subscription.token}</TableCell>
+                          <TableCell align="center">{dayjs(subscription.start_time).format('DD-MM-YYYY')}</TableCell>
+                          <TableCell align="center">{dayjs(subscription.end_time).format('DD-MM-YYYY')}</TableCell>
+                          <TableCell align="center">{subscription.token}</TableCell>
 
-                          {subscription.isActive ? (
-                            <TableCell align="left"> <Button  variant="contained">Active</Button> </TableCell>
+                          {/* {subscription.isActive ? (
+                            <TableCell align="center"> <Typography variant="subtitle1" className='status active-status' >Active</Typography> </TableCell>
                           ) : (
-                            <TableCell align="left"><Button  variant="outlined" >Inactive</Button></TableCell>
-                          )}
-
+                            <TableCell align="left"><Typography variant="subtitle1" className='status inactive-status' >Inactive</Typography></TableCell>
+                          )} */}
+                          <TableCell align="center">
+                            <Switch
+                              checked={subscription.isActive}
+                              onChange={handleChangeStatus}
+                              inputProps={{ 'aria-label': 'controlled' }}
+                            />
+                          </TableCell>
                           <TableCell align="center" >
                             <Tooltip title="Edit subscription">
                               <EditIcon
@@ -250,6 +266,7 @@ const SubscriptionList = () => {
                                   color: "blue",
                                   cursor: "pointer",
                                 }}
+                                onClick={handleEditDialogOpen}
                                 className="cursor-pointer"
                               />
                             </Tooltip>
@@ -269,15 +286,34 @@ const SubscriptionList = () => {
           </Box>
         </Box>
       </div>
-      {/* Dialog for adding a new subscriber */}
+      {/* Dialog for adding a new Subscription */}
       <Dialog
         open={isDialogOpen}
         onClose={handleDialogClose}
-        maxWidth="md"
-        PaperProps={{ style: { maxHeight: '95vh', minWidth: '600px', textAlign: 'center' } }}
+        // maxWidth="md"
+        // PaperProps={{ style: { maxHeight: '95vh', minWidth: '600px' } }}
+        fullScreen
       >
+        <AppBar sx={{ position: 'relative' }}>
+          <Toolbar>
+            
+            <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
+            Subscription Details
+            </Typography>
+            <IconButton
+              edge="start"
+              color="inherit"
+              onClick={handleDialogClose}
+              aria-label="close"
+            >
+              <CloseIcon />
+            </IconButton>
+          </Toolbar>
+        </AppBar>
+        {/* <DialogTitle>Subscription Details</DialogTitle> */}
+        <Divider></Divider>
         <DialogContent>
-          <Typography sx={{ textAlign: 'center', fontSize: 21, margin: 2 }}>Global Configuration</Typography>
+          <Typography sx={{ textAlign: 'center', fontSize: 21, marginBottom: 2 }}>Global Configuration</Typography>
           <Box className="configuration">
             <Grid container >
               <Grid item xs={6}>
@@ -444,49 +480,13 @@ const SubscriptionList = () => {
                     />
                   </Grid>
                   <Tooltip title="Add Additional Pull">
-                    <Button onClick={handleAddDialogOpen} endIcon={<AddCircleIcon />}>
+                    <Button onClick={() => { setIsAnoymizedAdditionalPull(true) }} endIcon={<AddCircleIcon />}>
                     </Button>
                   </Tooltip>
                 </Stack>
               </Grid>
-              {/* <Grid item xs={6}>
-                <Stack direction="row" alignItems="center">
-                  <Grid item xs={6}>
-                    <Typography variant="subtitle1" sx={{ textAlign: 'start', marginTop: 1 }}>Additional Pull Company Records </Typography>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField
-                      type={"number"}
-                      name="addtionalCompanyRecords"
-                      value={subscriptionData.createSubscriptionServicesModel[0].addtionalCompanyRecords}
-                      onChange={handleInputChange}
-                      size="small"
-                      margin="normal"
-                    />
-                  </Grid>
-                </Stack>
-              </Grid> */}
-              {/* <Grid item xs={6}>
-                <Stack direction="row" alignItems="center">
-                  <Grid item xs={6}>
-                    <Typography variant="subtitle1" sx={{ textAlign: 'start', marginLeft: 4, marginTop: 1 }}>Additional Pull Location Records</Typography>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField
-                      type={"number"}
-                      value={subscriptionData.createSubscriptionServicesModel[0].addtionalLocationRecords}
-                      onChange={handleInputChange}
-                      name="addtionalLocationRecords"
-                      size="small"
-                      margin="normal"
-                    />
-                  </Grid>
-                </Stack>
-              </Grid> */}
             </Grid>
-          </Box>
-          <Box className="configuration" sx={{ marginTop: 2 }}>
-            <Typography variant="subtitle1" sx={{ textAlign: 'start', fontWeight: '500', marginBottom: 2 }} >Identified Api Details:</Typography>
+            <Typography variant="subtitle1" sx={{ textAlign: 'start', fontWeight: '500', marginBottom: 2, marginTop: 4 }} >Identified Api Details:</Typography>
             <Grid container >
               <Grid item xs={6}>
                 <Stack direction="row" alignItems="center">
@@ -554,54 +554,95 @@ const SubscriptionList = () => {
                     />
                   </Grid>
                   <Tooltip title="Add Additional Pull">
-                    <Button onClick={handleAddDialogOpen} endIcon={<AddCircleIcon />}>
+                    <Button onClick={() => { setIsIdentifiedAdditionalPull(true) }} endIcon={<AddCircleIcon />}>
                     </Button>
                   </Tooltip>
                 </Stack>
               </Grid>
-              {/* <Grid item xs={6}>
-                <Stack direction="row" alignItems="center">
-                  <Grid item xs={6}>
-                    <Typography variant="subtitle1" sx={{ textAlign: 'start' }}>Additional Pull Company Records </Typography>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField
-                      type={"number"}
-                      name="addtionalCompanyRecords"
-                      value={subscriptionData.createSubscriptionServicesModel[1].addtionalCompanyRecords}
-                      onChange={handleInputChange}
-                      size="small"
-                      margin="normal"
-                    />
-                  </Grid>
-                </Stack>
-              </Grid>
-              <Grid item xs={6}>
-                <Stack direction="row" alignItems="center">
-                  <Grid item xs={6}>
-                    <Typography variant="subtitle1" sx={{ textAlign: 'start', marginLeft: 4 }}>Additional Pull Location Records</Typography>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField
-                      type={"number"}
-                      name="addtionalLocationRecords"
-                      value={subscriptionData.createSubscriptionServicesModel[1].addtionalLocationRecords}
-                      onChange={handleInputChange}
-                      size="small"
-                      margin="normal"
-                    />
-                  </Grid>
-                </Stack>
-              </Grid> */}
             </Grid>
           </Box>
         </DialogContent>
+        <Divider />
         <DialogActions>
           <Button variant="contained" color="primary" onClick={handleSaveUpdate}>
             {mode === 'add' ? 'ADD' : 'UPDATE'}
           </Button>
           <Button onClick={handleDialogClose} variant="outlined" color="primary">
             CANCEL
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+
+      {/* Modal Window for Additional pull */}
+      <Dialog open={isAnoymizedAdditionalPull || isIdentifiedAdditionalPull} onClose={handleDialogClose}>
+        <DialogTitle>Additional Pull</DialogTitle>
+        <DialogContent>
+          <Grid container >
+            <Grid item xs={6}>
+              <Stack direction="row" alignItems="center">
+                <Grid item xs={6}>
+                  <Typography variant="subtitle1" sx={{ textAlign: 'start', marginTop: 1 }}>Company Records</Typography>
+                </Grid>
+                <Grid item xs={4} sx={{ marginLeft: 1 }}>
+                  <TextField
+                    type={"number"}
+                    name="addtionalCompanyRecords"
+                    value={subscriptionData.createSubscriptionServicesModel[0].addtionalCompanyRecords}
+                    onChange={handleInputChange}
+                    size="small"
+                    margin="normal"
+                  />
+                </Grid>
+              </Stack>
+            </Grid>
+            <Grid item xs={6}>
+              <Stack direction="row" alignItems="center">
+                <Grid item xs={6}>
+                  <Typography variant="subtitle1" sx={{ textAlign: 'start', marginTop: 1 }}>Location Records</Typography>
+                </Grid>
+                <Grid item xs={4} sx={{ marginLeft: 1 }}>
+                  <TextField
+                    type={"number"}
+                    value={subscriptionData.createSubscriptionServicesModel[0].addtionalLocationRecords}
+                    onChange={handleInputChange}
+                    name="addtionalLocationRecords"
+                    size="small"
+                    margin="normal"
+                  />
+                </Grid>
+              </Stack>
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => { setIsAnoymizedAdditionalPull(false); setIsIdentifiedAdditionalPull(false); }} variant="contained" color="primary">
+            {mode === 'add' ? 'ADD' : 'UPDATE'}
+          </Button>
+          <Button onClick={() => { setIsAnoymizedAdditionalPull(false); setIsIdentifiedAdditionalPull(false); }} variant="outlined" >
+            CANCEL
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+
+
+      <Dialog open={isSubscriptionStatus} onClose={() => setIsSubscriptionStatus(false)}>
+        <DialogTitle id="alert-dialog-title">{"Change Subscription"}</DialogTitle>
+        <DialogContent >
+          Enabling this subscription will deactivate the presently active subscription.
+          Are you sure you want to activate this subscription?
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setIsSubscriptionStatus(false)}
+            color="primary">
+            Cancel
+          </Button>
+          <Button
+            onClick={() => setIsSubscriptionStatus(false)}
+            color="primary" autoFocus>
+            Confirm
           </Button>
         </DialogActions>
       </Dialog>

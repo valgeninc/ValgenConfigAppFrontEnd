@@ -72,9 +72,8 @@ const Login = () => {
                 helperText={validationErrors.password}
               />
             </div>
-            <Stack spacing={2} direction="row">
+            <Stack spacing={2} direction="row" justifyContent="flex-end">
               <Button className="btn login-btn" onClick={Login}> Login</Button>
-              <Button className="btn cancel-btn" variant="outlined" color="primary"> CANCEL</Button>
             </Stack>
           </form>
         </div>

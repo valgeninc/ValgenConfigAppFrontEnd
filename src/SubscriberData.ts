@@ -1,8 +1,7 @@
-{
-  "result": [
+export const subscriberResultData =[
     {
       "id": "1",
-      "userName": "John ghjk3456u",
+      "userName": "John ghjk",
       "email": "wertyjklwertyuio@gmail.com",
       "phone": "123-456-7890",
       "subscriptions": [
@@ -410,4 +409,4 @@
       ]
     }
   ]
-}
+  
