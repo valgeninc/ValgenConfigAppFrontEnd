@@ -3,6 +3,7 @@ import { TextField, Button, Typography, Stack } from "@mui/material";
 import "./login.css";
 import { useNavigate } from "react-router-dom";
 import logo from "../../../assets/ProsperFleet.png"
+import { login } from "../../../services/authentication";
 
 interface ValidationErrors {
   username: string;
@@ -39,11 +40,32 @@ const Login = () => {
     );
   };
 
-  const Login = (event: React.FormEvent) => {
-    // event.preventDefault();
+  // const handleLogin = (event: React.FormEvent) => {
+  //   // event.preventDefault();
+  //   validateForm();
+  //   if (isFormValid) {
+  //     navigate("/subscribers");
+  //   }
+  // };
+  const handleLogin = async () => {
     validateForm();
     if (isFormValid) {
-      navigate("/subscribers");
+      try {
+        const response = await login(username, password);
+
+        if (response.status === "OK") {
+          const userToken = response.result.userToken;
+          // Store the user token in localStorage
+          localStorage.setItem("userToken", userToken);
+
+          // Redirect to the dashboard or other protected route
+          navigate("/subscribers"); // Replace with your route
+        } else {
+          // setError("Login failed. Please check your credentials.");
+        }
+      } catch (error) {
+        // setError("An error occurred. Please try again.");
+      }
     }
   };
   return (
@@ -73,7 +95,7 @@ const Login = () => {
               />
             </div>
             <Stack spacing={2} direction="row" justifyContent="flex-end">
-              <Button className="btn login-btn" onClick={Login}> Login</Button>
+              <Button className="btn login-btn" onClick={handleLogin}> Login</Button>
             </Stack>
           </form>
         </div>

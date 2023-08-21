@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import "./Subscribers.css";
 import { Link } from 'react-router-dom';
 import { getSubscribers, editSubscribers, addSubscribers } from '../../services/subscribers';
@@ -12,9 +12,9 @@ import Navbar from '../navbar/Navbar';
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import EditIcon from "@mui/icons-material/Edit";
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import {subscriberResultData} from "../../SubscriberData";
+import Snackbar, { SnackbarOrigin } from '@mui/material/Snackbar';
 const initialValue = {
-  userName: '',
+  name: '',
   email: '',
   phone: ''
 }
@@ -25,7 +25,7 @@ const isValidEmail = (email: string): boolean => {
   return emailRegex.test(email);
 };
 interface ValidationErrors {
-  userName: string;
+  name: string;
   email: string;
   phone: string;
   [key: string]: string;
@@ -37,8 +37,9 @@ const Subscribers = () => {
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [subscriberData, setSubscriberData] = useState(initialValue);
   const [subscriberId, setSubscriberId] = useState('');
+  const [snackbar, setSnackbar] = React.useState(false);
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({
-    userName: '',
+    name: '',
     email: '',
     phone: '',
   });
@@ -46,7 +47,6 @@ const Subscribers = () => {
 
   useEffect(() => {
     getAllUsers();
-    // setSubscriberList(subscriberResultData);
   }, []);
 
   const getAllUsers = async () => {
@@ -59,8 +59,8 @@ const Subscribers = () => {
     setDialogOpen(true);
   };
   const handleDialogClose = () => {
-    setValidationErrors({ userName: '', email: '', phone: '' })
-    setSubscriberData({ userName: '', email: '', phone: '' });
+    setValidationErrors({ name: '', email: '', phone: '' })
+    setSubscriberData({ name: '', email: '', phone: '' });
 
     setDialogOpen(false);
   };
@@ -81,11 +81,22 @@ const Subscribers = () => {
     }
 
   };
+  const handleCloseSnackbar = () => {
+    setSnackbar(false);
+  }
 
   const addSubscriber = async () => {
-    const response = addSubscribers(subscriberData);
-    setSubscriberList([...subscriberList, (await response).data])
-    setSubscriberData({ userName: '', email: '', phone: '' });
+    addSubscribers(subscriberData);
+    // <Snackbar
+    //   autoHideDuration={4000}
+    //   anchorOrigin={{ vertical, horizontal }}
+    //   open={snackbar}
+    //   onClose={handleCloseSnackbar}
+    //   message="Subscriber Added Successfully!"
+    //   key={vertical + horizontal}
+    // />
+    getAllUsers();
+    setSubscriberData({ name: '', email: '', phone: '' });
     setDialogOpen(false);
   };
 
@@ -101,13 +112,13 @@ const Subscribers = () => {
   }
   const validateFields = (): boolean => {
     const errors: ValidationErrors = {
-      userName: '',
+      name: '',
       email: '',
       phone: ''
     };
 
-    if (!subscriberData.userName) {
-      errors.userName = 'userName is required.';
+    if (!subscriberData.name) {
+      errors.name = 'name is required.';
     }
 
     if (!subscriberData.email) {
@@ -175,10 +186,10 @@ const Subscribers = () => {
                         </TableRow>
                       </TableHead>
                       <TableBody className='subscribers'>
-                        {subscriberList.length > 0 ? (subscriberList.map((subscriber: { id: string, userName: string, email: string, phone: string }) => {
+                        {subscriberList.length > 0 ? (subscriberList.map((subscriber: { id: string, name: string, email: string, phone: string }) => {
                           return (
                             <TableRow hover role="checkbox" tabIndex={-1} key={subscriber.id}>
-                              <TableCell align="left">{subscriber.userName}</TableCell>
+                              <TableCell align="left">{subscriber.name}</TableCell>
                               <TableCell align="left">{subscriber.email}</TableCell>
                               <TableCell align="left">{subscriber.phone}</TableCell>
                               <TableCell  >
@@ -229,17 +240,17 @@ const Subscribers = () => {
       {/* Dialog for adding a new subscriber */}
       <Dialog open={isDialogOpen} onClose={handleDialogClose}>
         <DialogTitle>Subscriber Details</DialogTitle>
-        <Divider/>
+        <Divider />
         <DialogContent>
           <TextField
             label="Name"
-            name="userName"
-            value={subscriberData.userName}
+            name="name"
+            value={subscriberData.name}
             onChange={handleInputChange}
             fullWidth
             margin="normal"
-            error={Boolean(validationErrors.userName)}
-            helperText={validationErrors.userName}
+            error={Boolean(validationErrors.name)}
+            helperText={validationErrors.name}
           />
           <TextField
             label="Email"
@@ -262,12 +273,12 @@ const Subscribers = () => {
             helperText={validationErrors.phone}
           />
         </DialogContent>
-        <Divider/>
+        <Divider />
         <DialogActions>
-          <Button  onClick={handleSaveUpdate} variant="contained" color="primary">
+          <Button onClick={handleSaveUpdate} variant="contained" color="primary">
             {mode === 'add' ? 'ADD' : 'UPDATE'}
           </Button>
-          <Button  onClick={handleDialogClose} variant="outlined" >
+          <Button onClick={handleDialogClose} variant="outlined" >
             CANCEL
           </Button>
         </DialogActions>
