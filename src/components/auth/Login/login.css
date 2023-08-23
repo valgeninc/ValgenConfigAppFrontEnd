@@ -80,6 +80,12 @@
     color: #fff !important;
     padding: 0.6rem 2.5rem !important;
 }
+.login-btn:hover {
+    color: #fff;
+    background-color: #52a0b4 !important;
+    border-color: #52a0b4!important;
+    box-shadow: 0 1px 3px 0 rgba(0,0,0,.15),0 4px 6px 2px rgba(0,0,0,.15)!important;
+}
 
 .cancel-btn {
     color: #59bdd2 !important;

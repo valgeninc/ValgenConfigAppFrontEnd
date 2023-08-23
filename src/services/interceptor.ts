@@ -1,8 +1,8 @@
-// services/interceptor.ts
 import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
 
+
 const api: AxiosInstance = axios.create({
-    baseURL: "http://localhost:3030/", // Replace with your JSON Server URL
+    baseURL: "http://172.16.244.40:84/api",
 });
 
 api.interceptors.request.use(
@@ -11,12 +11,22 @@ api.interceptors.request.use(
         if (userToken) {
             config.headers = {
                 ...config.headers,
-                Authorization: userToken,
+                Authorization: `Bearer ${userToken}`,
             };
         }
         return config;
     },
     (error) => Promise.reject(error)
+);
+
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response && error.response.status === 401) {
+            window.location.href = "/login";
+        }
+        return Promise.reject(error);
+    }
 );
 
 export default api;

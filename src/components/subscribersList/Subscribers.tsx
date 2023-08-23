@@ -5,14 +5,15 @@ import { getSubscribers, editSubscribers, addSubscribers } from '../../services/
 import {
   Table, TableBody, TableCell, TableContainer, TableHead,
   TableRow, Paper, Button, Dialog, DialogActions, DialogContent,
-  DialogTitle, TextField, Tooltip, Box, Typography, Divider, Stack, Grid
+  DialogTitle, TextField, Tooltip, Box, Typography, Divider, Stack, Grid, Alert
 } from '@mui/material';
+import AddCardIcon from '@mui/icons-material/AddCard';
 import Sidenav from '../sidenav/Sidenav';
 import Navbar from '../navbar/Navbar';
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import EditIcon from "@mui/icons-material/Edit";
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import Snackbar, { SnackbarOrigin } from '@mui/material/Snackbar';
+import Snackbar from '@mui/material/Snackbar';
 const initialValue = {
   name: '',
   email: '',
@@ -37,7 +38,9 @@ const Subscribers = () => {
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [subscriberData, setSubscriberData] = useState(initialValue);
   const [subscriberId, setSubscriberId] = useState('');
-  const [snackbar, setSnackbar] = React.useState(false);
+  const [isSnackbar, setIsSnackbar] = useState(false);
+  const [message, setMessage] = useState('');
+  const [severity, setSeverity] = useState<'success' | 'error'>('success');
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({
     name: '',
     email: '',
@@ -66,6 +69,22 @@ const Subscribers = () => {
   };
   const handleInputChange = (e: { target: { name: any; value: any; }; }) => {
     const { name, value } = e.target;
+    debugger
+    if (name === "name" && value.length > 200) {
+      setValidationErrors((prevErrors) => ({ ...prevErrors, name: "Name should not exceed 200 characters" }));
+    } else if (name === "email" && value.length > 50) {
+      setValidationErrors((prevErrors) => ({ ...prevErrors, email: "Email should not exceed 50 characters" }));
+    } else if (name === "phone" && value.length > 12) {
+      setValidationErrors((prevErrors) => ({ ...prevErrors, phone: "Phone number should not exceed 12 digits" }));
+
+    } else if ( name === "phone" && !/^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}$/.test(value)) {
+      setValidationErrors((prevErrors) => ({ ...prevErrors, phone: "Invalid phone number format" }));
+    }
+    else {
+      // Clear the validation error if the input is valid
+      setValidationErrors((prevErrors) => ({ ...prevErrors, [name]: "" }));
+    }
+    debugger
     setSubscriberData({ ...subscriberData, [name]: value });
 
   };
@@ -82,22 +101,20 @@ const Subscribers = () => {
 
   };
   const handleCloseSnackbar = () => {
-    setSnackbar(false);
-  }
+    setIsSnackbar(false);
+  };
 
   const addSubscriber = async () => {
-    addSubscribers(subscriberData);
-    // <Snackbar
-    //   autoHideDuration={4000}
-    //   anchorOrigin={{ vertical, horizontal }}
-    //   open={snackbar}
-    //   onClose={handleCloseSnackbar}
-    //   message="Subscriber Added Successfully!"
-    //   key={vertical + horizontal}
-    // />
-    getAllUsers();
-    setSubscriberData({ name: '', email: '', phone: '' });
-    setDialogOpen(false);
+    const response = await addSubscribers(subscriberData);
+    if (response?.data.status === "OK") {
+      setMessage(response.data.result);
+      setSeverity('success');
+      setIsSnackbar(true);
+      getAllUsers();
+      setSubscriberData({ name: '', email: '', phone: '' });
+      setDialogOpen(false);
+    }
+
   };
 
   const handleEditSubscriber = (subscriber: any) => {
@@ -107,8 +124,14 @@ const Subscribers = () => {
     setDialogOpen(true);
   }
   const editSubscriber = async () => {
-    editSubscribers(subscriberId, subscriberData);
-    getAllUsers();
+    const response = await editSubscribers(subscriberId, subscriberData);
+    if (response?.data.status === "OK") {
+      setMessage(response.data.result);
+      setSeverity('success');
+      setIsSnackbar(true);
+      getAllUsers();
+    }
+
   }
   const validateFields = (): boolean => {
     const errors: ValidationErrors = {
@@ -118,17 +141,24 @@ const Subscribers = () => {
     };
 
     if (!subscriberData.name) {
-      errors.name = 'name is required.';
+      errors.name = 'Name is required.';
+    } else if (subscriberData.name.length > 200) {
+      errors.name = "Name should not exceed 200 characters";
     }
 
     if (!subscriberData.email) {
       errors.email = 'Email is required.';
     } else if (!isValidEmail(subscriberData.email)) {
       errors.email = 'Invalid email format.';
+    } else if (subscriberData.email.length > 50) {
+      errors.email = "Email should not exceed 50 characters";
     }
 
     if (!subscriberData.phone) {
+      debugger
       errors.phone = 'Phone is required.';
+    } else if (subscriberData.phone.length > 12) {
+      errors.phone = "Phone number should not exceed 12 digits";
     }
     setValidationErrors(errors);
     return Object.keys(errors).every(field => !errors[field]);
@@ -186,7 +216,7 @@ const Subscribers = () => {
                         </TableRow>
                       </TableHead>
                       <TableBody className='subscribers'>
-                        {subscriberList.length > 0 ? (subscriberList.map((subscriber: { id: string, name: string, email: string, phone: string }) => {
+                        {subscriberList && subscriberList.length > 0 ? (subscriberList.map((subscriber: { id: string, name: string, email: string, phone: string }) => {
                           return (
                             <TableRow hover role="checkbox" tabIndex={-1} key={subscriber.id}>
                               <TableCell align="left">{subscriber.name}</TableCell>
@@ -208,13 +238,7 @@ const Subscribers = () => {
                                   </Tooltip>
                                   <Tooltip title="View Subscriptions">
                                     <Link to={`/subscribers/${subscriber.id}/subscriptions`}>
-                                      <VisibilityIcon
-                                        style={{
-                                          fontSize: "20px",
-                                          color: "darkred",
-                                          cursor: "pointer",
-                                        }}
-                                      />
+                                      <AddCardIcon />
                                     </Link>
                                   </Tooltip>
                                 </Stack>
@@ -235,13 +259,18 @@ const Subscribers = () => {
           </div>
         </div>
       </div>
-
+      <Snackbar open={isSnackbar} autoHideDuration={1000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+        <Alert onClose={handleCloseSnackbar} severity={severity}>
+          {message}
+        </Alert>
+      </Snackbar>
 
       {/* Dialog for adding a new subscriber */}
       <Dialog open={isDialogOpen} onClose={handleDialogClose}>
         <DialogTitle>Subscriber Details</DialogTitle>
         <Divider />
         <DialogContent>
+
           <TextField
             label="Name"
             name="name"
@@ -263,6 +292,7 @@ const Subscribers = () => {
             helperText={validationErrors.email}
           />
           <TextField
+            type={"string"}
             label="Phone"
             name="phone"
             value={subscriberData.phone}

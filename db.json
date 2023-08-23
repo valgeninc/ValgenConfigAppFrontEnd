@@ -10,8 +10,8 @@
           "subscriptionId": "2367b2ab-4e2d-4758-928e-0b1f4205c67b",
           "subscriberId": "700f7749-0d96-4807-0b8d-08db97e6faa4",
           "subscriberToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-          "startDate": "2023-08-16T06:57:26.907",
-          "endDate": "2023-08-16T06:57:26.907",
+          "startDate": "2023-08-22T06:57:26.907",
+          "endDate": "2023-08-30T06:57:26.907",
           "maxRequests": 100,
           "timeWindow": 59,
           "isActive": false,
@@ -22,6 +22,8 @@
               "companyRecords": 23,
               "locationRecords": 20,
               "endPointDesc": "AnonymizedDetail",
+              "additionalCompanyRecords": 10,
+              "additionalLocationRecords": 10,
               "columns": [
                 "Company_ID",
                 "Location_ID",
@@ -34,6 +36,8 @@
               "companyRecords": 1000,
               "locationRecords": 2000,
               "endPointDesc": "IdentifiedDetail",
+              "additionalCompanyRecords": 30,
+              "additionalLocationRecords": 30,
               "columns": [
                 "Company_ID",
                 "Location_ID",

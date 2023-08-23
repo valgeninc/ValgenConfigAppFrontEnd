@@ -1,5 +1,5 @@
 import {
-  Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Box, Typography, Divider, Stack, Dialog, DialogContent, TextField, DialogActions, Grid, DialogTitle, Switch, AppBar, Toolbar, IconButton
+  Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Box, Typography, Divider, Stack, Dialog, DialogContent, TextField, DialogActions, Grid, DialogTitle, Switch, AppBar, Toolbar, IconButton, Alert, FormControlLabel
 } from '@mui/material'
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -24,19 +24,23 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import KeyboardDoubleArrowDownIcon from '@mui/icons-material/KeyboardDoubleArrowDown';
 import KeyboardDoubleArrowUpIcon from '@mui/icons-material/KeyboardDoubleArrowUp';
-import { getSubscription } from '../../services/subscriptions';
+import { createSubscription, getColumnList, getSubscription, renewSubscription, updateSubscription } from '../../services/subscriptions';
 import { ISubscriptionValidationErrors } from "../../types/index";
+import RefreshIcon from '@mui/icons-material/Refresh';
+import { Dayjs } from 'dayjs';
+import Snackbar from '@mui/material/Snackbar';
+
 
 const dayjs = require('dayjs');
 const initialValue: SubscriptionData = {
   subscriptionId: '',
   subscriberId: '',
   subscriberToken: '',
-  startDate: '',
-  endDate: '',
+  startDate: dayjs(new Date()),
+  endDate: dayjs(new Date()),
   maxRequests: undefined,
   timeWindow: undefined,
-  isActive: false,
+  isActive: true,
   subscriptionServicesModel: [
     {
       serviceId: "",
@@ -44,8 +48,8 @@ const initialValue: SubscriptionData = {
       endPointDesc: "AnonymizedDetail",
       companyRecords: undefined,
       locationRecords: undefined,
-      addtionalCompanyRecords: undefined,
-      addtionalLocationRecords: undefined,
+      addtionalCompanyRecords: 0,
+      addtionalLocationRecords: 0,
       columns: []
     },
     {
@@ -54,8 +58,8 @@ const initialValue: SubscriptionData = {
       endPointDesc: "IdentifiedDetail",
       companyRecords: undefined,
       locationRecords: undefined,
-      addtionalCompanyRecords: undefined,
-      addtionalLocationRecords: undefined,
+      addtionalCompanyRecords: 0,
+      addtionalLocationRecords: 0,
       columns: []
     },
   ]
@@ -78,144 +82,13 @@ const dualListBoxLabels = {
   selectedFilterHeader: 'Filter selected',
   selectedHeader: 'Selected Columns',
 };
-const columns = {
-  "anonymizedColumnList": [
-    "Location_ID",
-    "Company_ID",
-    "Corporate_Family_ID",
-    "Street",
-    "City",
-    "State",
-    "Zip",
-    "Company_Phone",
-    "Company_Fax",
-    "Website",
-    "Company_Facebook",
-    "Company_LinkedIn",
-    "Location_Type",
-    "Address_Type",
-    "Corporate_Franchise_Flag",
-    "Number_of_Locations",
-    "Company_Employee_Count",
-    "Company_Revenues",
-    "Primary_SIC_CODE_ID",
-    "Primary_SIC_CODE_DESC",
-    "SIC_Code_IDs",
-    "Primary_NAICS_Code_ID",
-    "Primary_NAICS_Code_Desc",
-    "Year_Started",
-    "Foreign_Parent_Flag",
-    "Credit_Grade",
-    "Credit_Grade_Desc",
-    "Credit_Limit",
-    "Green_Score",
-    "Square_Footage",
-    "Square_Footage_Desc",
-    "Growing_Business_Code",
-    "Total_Fleet",
-    "Total_Fleet_One_Year_Change",
-    "Total_Light_Duty",
-    "Total_Medium_Duty",
-    "Total_Heavy_Duty",
-    "Total_Locations_with_Fleet",
-    "Location_Fleet",
-    "Location_Light_Duty",
-    "Location_Medium_Duty",
-    "Location_Heavy_Duty",
-    "Class1_Vehicles_Present_Flag",
-    "Class2_Vehicles_Present_Flag",
-    "Class3_Vehicles_Present_Flag",
-    "Class4_Vehicles_Present_Flag",
-    "Class5_Vehicles_Present_Flag",
-    "Class6_Vehicles_Present_Flag",
-    "Class7_Vehicles_Present_Flag",
-    "Class8_Vehicles_Present_Flag",
-    "Body_Cars_Present_Flag",
-    "Body_SUV_Present_Flag",
-    "Body_Truck_Present_Flag",
-    "Body_Van_Present_Flag",
-    "Ownership_New_Owned_vehicle_Present_Flag",
-    "Ownership_Used_Owned_vehicle_Present_Flag",
-    "Ownership_Leased_Vehicle_Present_Flag",
-    "Year_Lessthan_1year_Vehicle_Present_Flag",
-    "Year1-2_Years_Vehicle_Present_Flag",
-    "Year3-5_Years_Vehicle_Present_Flag",
-    "Year6-9_Years_Vehicle_Present_Flag",
-    "Year10+_Years_Vehicle_Present_Flag"
-  ],
-  "identifiedColumnList": [
-    "Location_ID",
-    "Company_ID",
-    "Corporate_Family_ID",
-    "Street",
-    "City",
-    "State",
-    "Zip",
-    "Company_Phone",
-    "Company_Fax",
-    "Website",
-    "Company_Facebook",
-    "Company_LinkedIn",
-    "Location_Type",
-    "Address_Type",
-    "Corporate_Franchise_Flag",
-    "Number_of_Locations",
-    "Company_Employee_Count",
-    "Company_Revenues",
-    "Primary_SIC_CODE_ID",
-    "Primary_SIC_CODE_DESC",
-    "SIC_Code_IDs",
-    "Primary_NAICS_Code_ID",
-    "Primary_NAICS_Code_Desc",
-    "Year_Started",
-    "Foreign_Parent_Flag",
-    "Credit_Grade",
-    "Credit_Grade_Desc",
-    "Credit_Limit",
-    "Green_Score",
-    "Square_Footage",
-    "Square_Footage_Desc",
-    "Growing_Business_Code",
-    "Total_Fleet",
-    "Total_Fleet_One_Year_Change",
-    "Total_Light_Duty",
-    "Total_Medium_Duty",
-    "Total_Heavy_Duty",
-    "Total_Locations_with_Fleet",
-    "Location_Fleet",
-    "Location_Light_Duty",
-    "Location_Medium_Duty",
-    "Location_Heavy_Duty",
-    "Class1_Vehicles_Present_Flag",
-    "Class2_Vehicles_Present_Flag",
-    "Class3_Vehicles_Present_Flag",
-    "Class4_Vehicles_Present_Flag",
-    "Class5_Vehicles_Present_Flag",
-    "Class6_Vehicles_Present_Flag",
-    "Class7_Vehicles_Present_Flag",
-    "Class8_Vehicles_Present_Flag",
-    "Body_Cars_Present_Flag",
-    "Body_SUV_Present_Flag",
-    "Body_Truck_Present_Flag",
-    "Body_Van_Present_Flag",
-    "Ownership_New_Owned_vehicle_Present_Flag",
-    "Ownership_Used_Owned_vehicle_Present_Flag",
-    "Ownership_Leased_Vehicle_Present_Flag",
-    "Year_Lessthan_1year_Vehicle_Present_Flag",
-    "Year1-2_Years_Vehicle_Present_Flag",
-    "Year3-5_Years_Vehicle_Present_Flag",
-    "Year6-9_Years_Vehicle_Present_Flag",
-    "Year10+_Years_Vehicle_Present_Flag"
-  ]
-}
-
 
 
 interface SubscriptionData {
   subscriptionId: string;
   subscriberId: string;
-  startDate: string;
-  endDate: string;
+  startDate: Dayjs | null;
+  endDate: Dayjs | null;
   subscriberToken: string;
   isActive: boolean;
   maxRequests: number | undefined;
@@ -240,12 +113,17 @@ interface Option {
   value: string;
   label: string;
 }
+interface ColumnObject {
+  anonymizedColumnList: string[];
+  identifiedColumnList: string[];
+}
 
 const SubscriptionList = () => {
   const { subscriberId } = useParams();
   const [subscriptionList, setsubscriptionList] = useState<any>([]);
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [subscriptionData, setSubscriptionData] = useState(initialValue);
+  const [subscriptionId, setSubscriptionId] = useState('');
   const [mode, setMode] = useState('add');
   const navigate = useNavigate();
   const [isAnoymizedAdditionalPull, setIsAnoymizedAdditionalPull] = useState(false);
@@ -254,29 +132,35 @@ const SubscriptionList = () => {
   const [selected, setSelected] = useState<any>([]);
   const [column, setColumn] = useState<IOption[]>([]);
   const [isActiveSubscription, setIsActiveSubscription] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<ISubscriptionValidationErrors>({
-    maxRequests: '',
-    timeWindow: '',
-    startDate: '',
-    endDate: '',
+  const [isSnackbar, setIsSnackbar] = useState(false);
+  const [message, setMessage] = useState('');
+  const [severity, setSeverity] = useState<'success' | 'error'>('success');
+  const [validationErrors, setValidationErrors] = useState<any>({
+    maxRequests: "",
   });
+  const [isRequiredFulfilled, setIsRequiredFulfilled] = useState(true);
+
 
   useEffect(() => {
     getUsersSubscription();
     getColumns();
   }, []);
 
-  const getColumns = () => {
+  const getColumns = async () => {
+    let columns = await getColumnList();
+    if (columns) {
+      let options = responseColumnsListToModifiedColumnList(columns);
+      setColumn(options);
+    }
 
-    const options = responseColumnsListToModifiedColumnList(columns);
-    setColumn(options);
   }
   const getUsersSubscription = async () => {
     let response = await getSubscription(subscriberId);
-    setsubscriptionList(response.data.subscriptions);
-
+    setsubscriptionList(response);
+    setIsActiveSubscription(response?.isActive);
   }
   const handleDialogClose = () => {
+    setIsRequiredFulfilled(true);
     setDialogOpen(false);
     setSubscriptionData(initialValue);
   };
@@ -286,28 +170,46 @@ const SubscriptionList = () => {
     setDialogOpen(true);
   };
   const handleEditDialogOpen = (subscription: SubscriptionData) => {
+    try {
+      // Set subscription data
+      setSubscriptionData(subscription);
 
-    setSubscriptionData(subscription);
-    interface ColumnObject {
-      anonymizedColumnList: string[];
-      identifiedColumnList: string[];
-    }
-    const columns: ColumnObject = {
-      anonymizedColumnList: subscription.subscriptionServicesModel[0].columns,
-      identifiedColumnList: subscription.subscriptionServicesModel[1].columns
-    }
+      // Extract column data
+      const columns: ColumnObject = {
+        anonymizedColumnList: subscription.subscriptionServicesModel[0]?.columns || [],
+        identifiedColumnList: subscription.subscriptionServicesModel[1]?.columns || [],
+      };
+      // Convert response columns to modified columns
+      const options = responseColumnsListToModifiedColumnList(columns);
 
-    const options = responseColumnsListToModifiedColumnList(columns);
-    setSelected(options);
-    setMode('edit');
-    setDialogOpen(true);
+      // Set selected options, mode, and open the dialog
+      setSelected(options);
+      setMode('edit');
+      setDialogOpen(true);
+    } catch (error) {
+      console.error('An error occurred while opening the edit dialog:', error);
+      // You can display an error message to the user or handle the error as needed
+    }
   };
   const handleInputChange = (e: any) => {
-    const { name, value } = e.target;
-    setSubscriptionData((prevData) => ({
-      ...prevData,
-      [name]: value
-    }));
+    try {
+      const { name, value } = e.target;
+    debugger
+      if (name === "maxRequests" && value > 0 && value.length > 4) {
+        setValidationErrors((prevErrors: any) => ({ ...prevErrors, maxRequests: "Max Calls should be between 1 to 9999 " }));
+      }else {
+        // Clear the validation error if the input is valid
+        setValidationErrors((prevErrors: any) => ({ ...prevErrors, [name]: "" }));
+      }
+
+      setSubscriptionData((prevData) => ({
+        ...prevData,
+        [name]: value
+      }));
+
+    } catch (error) {
+
+    }
 
   };
   const handleServiceModelInputChange = (
@@ -328,33 +230,57 @@ const SubscriptionList = () => {
       };
     });
   };
-  const addSubscription = () => {
-    const payload = {
-      subscriberId: subscriptionData.subscriberId,
-      startDate: subscriptionData.startDate,
-      endDate: subscriptionData.endDate,
-      maxRequests: (subscriptionData.maxRequests),
-      timeWindow: (subscriptionData.timeWindow),
-      subscriptionServicesModel: subscriptionData.subscriptionServicesModel?.map((model) => ({
-        endPointDesc: model.endPointDesc,
-        companyRecords: (model.companyRecords),
-        locationRecords: (model.locationRecords),
-        addtionalCompanyRecords: (model.addtionalCompanyRecords),
-        addtionalLocationRecords: (model.addtionalLocationRecords),
-        columns: model.columns
-      }))
-    };
-
-  }
-  const editSubscriber = () => {
+  const addSubscription = async () => {
+    debugger
     const columns = modifiedColumnListToResponseColumnsList(selected)
     const payload = {
-      subscriberId: subscriptionData.subscriberId,
+      subscriberId: subscriberId,
+      subscriptionId: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
       startDate: subscriptionData.startDate,
       endDate: subscriptionData.endDate,
       maxRequests: (subscriptionData.maxRequests),
       timeWindow: (subscriptionData.timeWindow),
-      subscriptionServicesModel: subscriptionData.subscriptionServicesModel?.map((model) => ({
+      IsActive: (subscriptionData.isActive),
+      createSubscriptionServicesModel: subscriptionData.subscriptionServicesModel?.map((model) => ({
+        serviceId: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        endPointDesc: model.endPointDesc,
+        companyRecords: (Number(model.companyRecords) + Number(model.addtionalCompanyRecords)),
+        locationRecords: (Number(model.locationRecords) + Number(model.addtionalLocationRecords)),
+        addtionalCompanyRecords: (model.addtionalCompanyRecords),
+        addtionalLocationRecords: (model.addtionalLocationRecords),
+        columns: model.columns
+      }))
+    };
+    payload.createSubscriptionServicesModel[0].columns = columns.anonymizedColumnList;
+    payload.createSubscriptionServicesModel[1].columns = columns.identifiedColumnList;
+    const response = await createSubscription(payload);
+    if (response?.data.status === "OK") {
+      setMessage(response.data.result);
+      setSeverity('success');
+      setIsSnackbar(true);
+      getUsersSubscription();
+    } else {
+      setMessage("Something went wrong");
+      setSeverity('error');
+      setIsSnackbar(true);
+    }
+
+
+
+  }
+  const editSubscriber = async () => {
+    debugger
+    const columns = modifiedColumnListToResponseColumnsList(selected)
+    const payload = {
+      subscriberId: subscriberId,
+      subscriptionId: subscriptionData.subscriptionId,
+      startDate: subscriptionData.startDate,
+      endDate: subscriptionData.endDate,
+      maxRequests: (subscriptionData.maxRequests),
+      timeWindow: (subscriptionData.timeWindow),
+      IsActive: (subscriptionData.isActive),
+      createSubscriptionServicesModel: subscriptionData.subscriptionServicesModel?.map((model) => ({
+        serviceId: model.serviceId,
         endPointDesc: model.endPointDesc,
         companyRecords: (model.companyRecords),
         locationRecords: (model.locationRecords),
@@ -363,63 +289,74 @@ const SubscriptionList = () => {
         columns: model.columns
       }))
     };
-    payload.subscriptionServicesModel[0].columns = columns.anonymizedColumnList;
-    payload.subscriptionServicesModel[1].columns = columns.identifiedColumnList;
+    payload.createSubscriptionServicesModel[0].columns = columns.anonymizedColumnList;
+    payload.createSubscriptionServicesModel[1].columns = columns.identifiedColumnList;
 
+    const response = await updateSubscription(payload);
+    if (response?.data.status === "OK") {
+      setMessage(response.data.result);
+      setSeverity('success');
+      setIsSnackbar(true);
+      getUsersSubscription();
+    } else {
+      setMessage("Something went wrong");
+      setSeverity('error');
+      setIsSnackbar(true);
+    }
   }
   const handleSaveUpdate = () => {
-    const isValid = validateFields();
-    if (isValid) {
-      if (mode === 'add') {
-        addSubscription();
-      } else if (mode === 'edit') {
-        editSubscriber();
+    try {
+      // Validate data using Zod schema
+      // subscriptionSchema.parse(subscriptionData);
+      debugger
+      setIsRequiredFulfilled(selected.length > 0);
+      if (isRequiredFulfilled) {
+        if (mode === 'add') {
+          addSubscription();
+        } else if (mode === 'edit') {
+          editSubscriber();
+        }
+        handleDialogClose();
       }
-      handleDialogClose();
+
+    } catch (error) {
+
     }
 
+
   };
-  const handleChangeStatus = (isActive: boolean) => {
+  const handleChangeStatus = (isActive: boolean, subscriptionId: string) => {
     setIsActiveSubscription(isActive);
     setIsSubscriptionStatus(true);
+    setSubscriptionId(subscriptionId);
   }
-  const validateFields = (): boolean => {
-    const errors: ISubscriptionValidationErrors = {
-      maxRequests: '',
-      timeWindow: '',
-      startDate: '',
-      endDate: '',
-    };
 
-    if (!subscriptionData.maxRequests) {
-      errors.maxRequests = 'Max Calls is required.';
-    }
-    if (!subscriptionData.timeWindow) {
-      errors.timeWindow = 'Time in Seconds is required.';
-    }
-    if (!subscriptionData.startDate) {
-      errors.startDate = 'Start Date is required.';
-    }
-    if (!subscriptionData.endDate) {
-      errors.endDate = 'End Date is required.';
+  const activateDeactivateSubscription = async () => {
+    try {
+      const response: any = await renewSubscription(subscriptionId, isActiveSubscription);
+      // Check if the API call was successful or not
+      if (response.data.status == "OK") {
+        setMessage(response.data.result);
+        setSeverity('success');
+        // setIsActiveSubscription(!isActiveSubscription);
+        getUsersSubscription();
+      } else {
+        setMessage(response.data.error);
+        setSeverity('error');
+      }
+
+      setIsSnackbar(true);
+    } catch (error) {
+      setMessage('An error occurred while making the API call.');
+      setSeverity('error');
+      setIsSnackbar(true);
     }
 
-    // if (!subscriptionData.email) {
-    //   errors.email = 'Email is required.';
-    // } else if (!isValidEmail(subscriptionData.email)) {
-    //   errors.email = 'Invalid email format.';
-    // }
-
-    // if (!subscriptionData.phone) {
-    //   errors.phone = 'Phone is required.';
-    // }
-    setValidationErrors(errors);
-    return Object.keys(errors).every(field => !errors[field]);
-  };
-  const activateDeactivateSubscription = () => {
-    // isSubscriptionStatus
     setIsSubscriptionStatus(false);
   }
+  const handleCloseSnackbar = () => {
+    setIsSnackbar(false);
+  };
 
   return (
     <>
@@ -488,11 +425,11 @@ const SubscriptionList = () => {
                         <TableRow hover role="checkbox" tabIndex={-1} key={subscription.subscriberToken}>
                           <TableCell align="center">{dayjs(subscription.startDate).format('DD-MM-YYYY')}</TableCell>
                           <TableCell align="center">{dayjs(subscription.endDate).format('DD-MM-YYYY')}</TableCell>
-                          <TableCell align="center">{subscription.subscriberToken}</TableCell>
+                          <TableCell align="center" sx={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{subscription.subscriberToken}</TableCell>
                           <TableCell align="center">
                             <Switch
                               checked={subscription.isActive}
-                              onChange={() => handleChangeStatus(subscription.isActive)}
+                              onChange={() => handleChangeStatus(!subscription.isActive, subscription.subscriptionId)}
                               inputProps={{ 'aria-label': 'controlled' }}
                             />
                           </TableCell>
@@ -507,6 +444,14 @@ const SubscriptionList = () => {
                                 onClick={() => handleEditDialogOpen(subscription)}
                                 className="cursor-pointer"
                               />
+                            </Tooltip>
+                            <Tooltip title="Refresh Token | Functionality In Progress">
+                              <RefreshIcon style={{
+                                fontSize: "20px",
+                                color: "blue",
+                                cursor: "pointer",
+                                marginLeft: "20px",
+                              }} />
                             </Tooltip>
                           </TableCell>
                         </TableRow>
@@ -523,7 +468,13 @@ const SubscriptionList = () => {
 
           </Box>
         </Box>
+        <Snackbar open={isSnackbar} autoHideDuration={1000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+          <Alert onClose={handleCloseSnackbar} severity={severity}>
+            {message}
+          </Alert>
+        </Snackbar>
       </div>
+
       {/* Dialog for adding a new Subscription */}
       <Dialog
         open={isDialogOpen}
@@ -545,19 +496,33 @@ const SubscriptionList = () => {
             </IconButton>
           </Toolbar>
         </AppBar>
-        {/* <DialogTitle>Subscription Details</DialogTitle> */}
         <Divider></Divider>
         <DialogContent>
-          <Typography sx={{ textAlign: 'center', fontSize: 21, marginBottom: 2 }}>Global Configuration</Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box>
+              <Typography sx={{ textAlign: 'center', fontSize: 21, marginLeft: 2, marginBottom: 2 }}>Global Configuration</Typography>
+            </Box>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={subscriptionData.isActive}
+                  onChange={() => setSubscriptionData(prevData => ({ ...prevData, isActive: !prevData.isActive }))}
+                  inputProps={{ 'aria-label': 'controlled' }}
+                />
+              }
+              label="IsActive"
+              sx={{ textAlign: 'right' }}
+            />
+          </Box>
+
           <Box className="configuration">
             <Grid container>
-              {/* <Grid xs={6}> */}
               <Grid item xs={6}>
                 <Stack direction="row" alignItems="center" >
                   <Grid item xs={6}>
                     <Typography variant="subtitle1" sx={{ textAlign: 'start' }} >Max Calls</Typography>
                   </Grid>
-                  <Grid item xs={6}>
+                  <Grid item xs={5}>
                     <TextField
                       type={"number"}
                       name="maxRequests"
@@ -576,8 +541,7 @@ const SubscriptionList = () => {
                   <Grid item xs={6}>
                     <Typography variant="subtitle1" sx={{ textAlign: 'start', marginLeft: 5 }}>Time in Seconds</Typography>
                   </Grid>
-                  <Grid item xs={6}  >
-                    {/* <LocalizationProvider dateAdapter={AdapterDayjs}> */}
+                  <Grid item xs={5}  >
                     <TextField
                       type={"number"}
                       name="timeWindow"
@@ -585,10 +549,9 @@ const SubscriptionList = () => {
                       onChange={handleInputChange}
                       size="small"
                       margin="normal"
-                      error={Boolean(validationErrors.timeWindow)}
-                      helperText={validationErrors.timeWindow}
+                    // error={Boolean(validationErrors.find((issue) => issue.path[0] === "timeWindow"))}
+                    // helperText={validationErrors.find((issue) => issue.path[0] === "timeWindow")?.message || ""}
                     />
-                    {/* </LocalizationProvider> */}
                   </Grid>
                 </Stack>
               </Grid>
@@ -600,9 +563,9 @@ const SubscriptionList = () => {
                   <Grid item xs={5}>
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                       <DatePicker
-
-                        // value={subscriptionData?.startDate ? new Date(subscriptionData?.startDate) : ''}
+                        value={dayjs(subscriptionData.startDate)}
                         format="DD-MM-YYYY"
+                        minDate={dayjs().subtract(0, 'day')}
                         onChange={(value: any) => {
                           const utcDate = value.toISOString();
                           setSubscriptionData((prevData) => ({
@@ -623,8 +586,9 @@ const SubscriptionList = () => {
                   <Grid item xs={5}>
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                       <DatePicker
-                        // value={subscriptionData?.endDate ? new Date(subscriptionData?.endDate) : ''}
+                        value={dayjs(subscriptionData.endDate)}
                         format="DD-MM-YYYY"
+                        minDate={dayjs().subtract(0, 'day')}
                         onChange={(value: any) => {
                           const utcDate = value.toISOString();
                           setSubscriptionData((prevData) => ({
@@ -639,7 +603,7 @@ const SubscriptionList = () => {
               </Grid>
             </Grid>
           </Box>
-          <Typography sx={{ textAlign: 'center', fontSize: 21, margin: 2 }}>Api Configuration</Typography>
+          <Typography sx={{ fontSize: 21, margin: 2 }}>Api Configuration</Typography>
           <Box className="configuration">
             <Grid container item xs={12}>
               <Grid item xs={6}>
@@ -657,6 +621,8 @@ const SubscriptionList = () => {
                         name="companyRecords"
                         size="small"
                         margin="normal"
+                      // error={Boolean(validationErrors.find((issue) => issue.path[0] === 'createSubscriptionServicesModel' && issue.path[1] === 0 && issue.path[2] === 'companyRecords'))}
+                      // helperText={validationErrors.find((issue) => issue.path[0] === 'createSubscriptionServicesModel' && issue.path[1] === 0 && issue.path[2] === 'companyRecords')?.message || ''}
                       />
                     </Grid>
                   </Stack>
@@ -669,11 +635,13 @@ const SubscriptionList = () => {
                     <Grid item xs={4}>
                       <TextField
                         value={subscriptionData.subscriptionServicesModel?.[0].locationRecords}
-                        onChange={handleInputChange}
+                        onChange={(event) => handleServiceModelInputChange(event, 0, 'locationRecords')}
                         type={"number"}
                         name="locationRecords"
                         size="small"
                         margin="normal"
+                      // error={Boolean(validationErrors.find((issue) => issue.path[0] === 'createSubscriptionServicesModel' && issue.path[1] === 0 && issue.path[2] === 'locationRecords'))}
+                      // helperText={validationErrors.find((issue) => issue.path[0] === 'createSubscriptionServicesModel' && issue.path[1] === 0 && issue.path[2] === 'locationRecords')?.message || ''}
                       />
                     </Grid>
                     <Tooltip title="Add Additional Pull">
@@ -683,7 +651,10 @@ const SubscriptionList = () => {
                   </Stack>
                 </Grid>
               </Grid>
-              <Grid item xs={6}>
+              <Divider orientation="vertical" sx={{ marginRight: 5, opacity: 1 }} flexItem>
+
+              </Divider>
+              <Grid item xs={5}>
                 <Grid item xs={12}>
                   <Typography variant="subtitle1" sx={{ textAlign: 'start', fontWeight: '500', marginBottom: 2 }} >Identified Api Details:</Typography>
                 </Grid>
@@ -696,7 +667,7 @@ const SubscriptionList = () => {
                       <TextField
                         type={"number"}
                         value={subscriptionData.subscriptionServicesModel?.[1].companyRecords}
-                        onChange={handleInputChange}
+                        onChange={(event) => handleServiceModelInputChange(event, 1, 'companyRecords')}
                         name="companyRecords"
                         size="small"
                         margin="normal"
@@ -714,7 +685,7 @@ const SubscriptionList = () => {
                         type={"number"}
                         name="locationRecords"
                         value={subscriptionData.subscriptionServicesModel?.[1].locationRecords}
-                        onChange={handleInputChange}
+                        onChange={(event) => handleServiceModelInputChange(event, 1, 'locationRecords')}
                         size="small"
                         margin="normal"
                       />
@@ -750,6 +721,8 @@ const SubscriptionList = () => {
                       moveBottom: <KeyboardDoubleArrowDownIcon />
                     }}
                   />
+                  {!isRequiredFulfilled && <span style={{ color: 'red' }}>This field is required.</span>}
+
                 </Box>
               </Grid>
             </Grid>
@@ -781,8 +754,8 @@ const SubscriptionList = () => {
                   <TextField
                     type={"number"}
                     name="addtionalCompanyRecords"
-                    value={subscriptionData.subscriptionServicesModel?.[0].addtionalCompanyRecords}
-                    onChange={handleInputChange}
+                    value={isAnoymizedAdditionalPull ? subscriptionData.subscriptionServicesModel?.[0].addtionalCompanyRecords : subscriptionData.subscriptionServicesModel?.[1].addtionalCompanyRecords}
+                    onChange={(event) => isAnoymizedAdditionalPull ? handleServiceModelInputChange(event, 0, 'addtionalCompanyRecords') : handleServiceModelInputChange(event, 1, 'addtionalCompanyRecords')}
                     size="small"
                     margin="normal"
                   />
@@ -797,8 +770,10 @@ const SubscriptionList = () => {
                 <Grid item xs={4} sx={{ marginLeft: 1 }}>
                   <TextField
                     type={"number"}
-                    value={subscriptionData.subscriptionServicesModel?.[0].addtionalLocationRecords}
-                    onChange={handleInputChange}
+                    value={isAnoymizedAdditionalPull ? subscriptionData.subscriptionServicesModel?.[0].addtionalLocationRecords : subscriptionData.subscriptionServicesModel?.[1].addtionalLocationRecords}
+                    onChange={(event) => {
+                      (isAnoymizedAdditionalPull) ? handleServiceModelInputChange(event, 0, 'addtionalLocationRecords') : handleServiceModelInputChange(event, 1, 'addtionalLocationRecords')
+                    }}
                     name="addtionalLocationRecords"
                     size="small"
                     margin="normal"
@@ -822,11 +797,9 @@ const SubscriptionList = () => {
 
       <Dialog open={isSubscriptionStatus} onClose={() => setIsSubscriptionStatus(false)}>
         <DialogTitle id="alert-dialog-title">{"Change Subscription"}</DialogTitle>
-        {isActiveSubscription ? <DialogContent >
-          Deactivating this subscription will cancel the presently active subscription.
+        {!isActiveSubscription ? <DialogContent >
           Are you sure you want to deactivate this subscription?
         </DialogContent> : <DialogContent >
-          Enabling this subscription will deactivate the presently active subscription.
           Are you sure you want to activate this subscription?
         </DialogContent>}
         <DialogActions>
@@ -845,38 +818,6 @@ const SubscriptionList = () => {
     </>
   )
 }
-interface Column {
-  label: string;
-  value: string;
-}
-
-
-// function convertModifiedToOriginal(modifiedData: ModifiedData[]): {
-//   anonymizedColumnList: OriginalData[];
-//   identifiedColumnList: OriginalData[];
-// } {
-//   const originalData: {
-//     anonymizedColumnList: OriginalData[];
-//     identifiedColumnList: OriginalData[];
-//   } = {
-//     anonymizedColumnList: [],
-//     identifiedColumnList: [],
-//   };
-
-//   modifiedData.forEach(category => {
-//     const categoryName = category.label;
-//     const targetArray = categoryName === 'Anoymized' ? 'anonymizedColumnList' : 'identifiedColumnList';
-
-//     const options = category.options.map(option => ({
-//       label: option.label,
-//       value: option.value,
-//     }));
-
-//     originalData[targetArray] = originalData[targetArray].concat(options);
-//   });
-
-//   return originalData;
-// }
 
 interface IOption {
   label: string;
@@ -885,7 +826,7 @@ interface IOption {
 
 function responseColumnsListToModifiedColumnList(columns: { anonymizedColumnList: string[]; identifiedColumnList: string[] }) {
   const anonymizedOptions: IOption = {
-    label: 'Anoymized',
+    label: 'Anonymized',
     options: columns.anonymizedColumnList.map((column: any) => ({ value: column + "_anonymized", label: column }))
   };
 
@@ -898,6 +839,7 @@ function responseColumnsListToModifiedColumnList(columns: { anonymizedColumnList
   return options;
 }
 function modifiedColumnListToResponseColumnsList(options: IOption[]): { anonymizedColumnList: string[]; identifiedColumnList: string[] } {
+  debugger
   const anonymizedColumns: string[] = [];
   const identifiedColumns: string[] = [];
 
@@ -906,7 +848,7 @@ function modifiedColumnListToResponseColumnsList(options: IOption[]): { anonymiz
     const columnOptions = category.options;
 
     columnOptions.forEach(option => {
-      if (categoryName === 'Anoymized') {
+      if (categoryName === 'Anonymized') {
         anonymizedColumns.push(option.label);
       } else if (categoryName === 'Identified') {
         identifiedColumns.push(option.label);

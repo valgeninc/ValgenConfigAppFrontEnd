@@ -2,35 +2,20 @@ import axios from 'axios';
 
 
 const api = axios.create({
-  baseURL: 'http://localhost:3030',
+  baseURL: 'http://172.16.244.40:84/api',
 });
 
 export const login = async (
-  username: string,
-  password: string
+  userName: string,
+  userPassword: string
 ): Promise<any> => {
   try {
-    const response = await api.get("/users", {
-      params: { username, password },
+    const response = await api.post('/Login', {
+      userName: userName,
+      userPassword: userPassword
     });
-
-    const user = response.data[0];
-    if (user) {
-      return {
-        status: "OK",
-        result: {
-          userToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJZCI6ImNhMWRhNmVjLTljNWMtNGIyOS04OTAwLWYyYjYzNDUzYWJmNiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWVpZGVudGlmaWVyIjoiVGVzdCIsImV4cCI6MTY5MjI2ODU5NywiaXNzIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6NzI3NC8iLCJhdWQiOiJodHRwczovL2xvY2FsaG9zdDo3Mjc0LyJ9.xNNs3bvvnyrt_7VjP11ptDV_6GaUgXb_WXP-k9zUFok", // Use the user's id as a mock token
-        },
-        error: null,
-      };
-    } else {
-      throw new Error("Invalid credentials");
-    }
+    return response.data; // Return the response data from the API
   } catch (error) {
-    return {
-      status: "ERROR",
-      result: null,
-      // error: error.message,
-    };
+    // throw error; // Throw an error if the API call fails
   }
 };
