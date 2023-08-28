@@ -12,8 +12,8 @@ import Sidenav from '../sidenav/Sidenav';
 import Navbar from '../navbar/Navbar';
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import EditIcon from "@mui/icons-material/Edit";
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import Snackbar from '@mui/material/Snackbar';
+import { Oval } from 'react-loader-spinner'
 const initialValue = {
   name: '',
   email: '',
@@ -41,6 +41,7 @@ const Subscribers = () => {
   const [isSnackbar, setIsSnackbar] = useState(false);
   const [message, setMessage] = useState('');
   const [severity, setSeverity] = useState<'success' | 'error'>('success');
+  const [loading, setLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({
     name: '',
     email: '',
@@ -50,11 +51,17 @@ const Subscribers = () => {
 
   useEffect(() => {
     getAllUsers();
+    window.history.pushState(null, "", window.location.href);
+    window.onpopstate = () => {
+      window.history.pushState(null, "", window.location.href);
+    }
   }, []);
 
   const getAllUsers = async () => {
+    setLoading(true);
     let response = await getSubscribers();
     setSubscriberList(response);
+    setLoading(false);
   }
 
   const handleAddDialogOpen = () => {
@@ -69,24 +76,22 @@ const Subscribers = () => {
   };
   const handleInputChange = (e: { target: { name: any; value: any; }; }) => {
     const { name, value } = e.target;
-    debugger
     if (name === "name" && value.length > 200) {
       setValidationErrors((prevErrors) => ({ ...prevErrors, name: "Name should not exceed 200 characters" }));
     } else if (name === "email" && value.length > 50) {
       setValidationErrors((prevErrors) => ({ ...prevErrors, email: "Email should not exceed 50 characters" }));
-    } else if (name === "phone" && value.length > 12) {
-      setValidationErrors((prevErrors) => ({ ...prevErrors, phone: "Phone number should not exceed 12 digits" }));
-
-    } else if ( name === "phone" && !/^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}$/.test(value)) {
+    } else if (name === "email" && !isValidEmail(subscriberData.email)) {
+      setValidationErrors((prevErrors) => ({ ...prevErrors, email: "Invalid email format." }));
+    } else if (name === "phone" && value.length > 20) {
+      setValidationErrors((prevErrors) => ({ ...prevErrors, phone: "Phone number should not exceed 20 digits" }));
+    } else if (name === "phone" && !value.match(/^(?=.*[0-9])[- +0-9]+$/)) {
       setValidationErrors((prevErrors) => ({ ...prevErrors, phone: "Invalid phone number format" }));
     }
     else {
       // Clear the validation error if the input is valid
       setValidationErrors((prevErrors) => ({ ...prevErrors, [name]: "" }));
     }
-    debugger
     setSubscriberData({ ...subscriberData, [name]: value });
-
   };
   const handleSaveUpdate = () => {
     const isValid = validateFields();
@@ -134,11 +139,7 @@ const Subscribers = () => {
 
   }
   const validateFields = (): boolean => {
-    const errors: ValidationErrors = {
-      name: '',
-      email: '',
-      phone: ''
-    };
+    const errors = { ...validationErrors };
 
     if (!subscriberData.name) {
       errors.name = 'Name is required.';
@@ -148,17 +149,14 @@ const Subscribers = () => {
 
     if (!subscriberData.email) {
       errors.email = 'Email is required.';
-    } else if (!isValidEmail(subscriberData.email)) {
-      errors.email = 'Invalid email format.';
     } else if (subscriberData.email.length > 50) {
       errors.email = "Email should not exceed 50 characters";
     }
 
     if (!subscriberData.phone) {
-      debugger
       errors.phone = 'Phone is required.';
-    } else if (subscriberData.phone.length > 12) {
-      errors.phone = "Phone number should not exceed 12 digits";
+    } else if (subscriberData.phone.length > 20) {
+      errors.phone = "Phone number should not exceed 20 digits";
     }
     setValidationErrors(errors);
     return Object.keys(errors).every(field => !errors[field]);
@@ -173,7 +171,16 @@ const Subscribers = () => {
           <div className="subscribers-table">
             <Box sx={{ display: 'flex' }}>
               <Sidenav />
-              <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+              {loading ? (<div className="loading"><Oval
+                height={40}
+                width={40}
+                color="#59bdd2 "
+                visible={true}
+                ariaLabel='oval-loading'
+                secondaryColor="#59bdd2 "
+                strokeWidth={2}
+                strokeWidthSecondary={2}
+              /></div>) : (<Box component="main" sx={{ flexGrow: 1, p: 3 }}>
                 <Paper sx={{ width: "98%", overflow: "hidden", padding: "12px" }}>
                   <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'space-between' }}>
                     <Typography
@@ -219,7 +226,7 @@ const Subscribers = () => {
                         {subscriberList && subscriberList.length > 0 ? (subscriberList.map((subscriber: { id: string, name: string, email: string, phone: string }) => {
                           return (
                             <TableRow hover role="checkbox" tabIndex={-1} key={subscriber.id}>
-                              <TableCell align="left">{subscriber.name}</TableCell>
+                              <TableCell align="left" sx={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{subscriber.name}</TableCell>
                               <TableCell align="left">{subscriber.email}</TableCell>
                               <TableCell align="left">{subscriber.phone}</TableCell>
                               <TableCell  >
@@ -254,7 +261,7 @@ const Subscribers = () => {
                     </Table>
                   </TableContainer>
                 </Paper>
-              </Box>
+              </Box>)}
             </Box>
           </div>
         </div>

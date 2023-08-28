@@ -42,8 +42,13 @@ export default function Navbar() {
 
     const handleMenuClose = () => {
         navigate("/login")
+        localStorage.removeItem('userToken');
         setAnchorEl(null);
         handleMobileMenuClose();
+        window.history.pushState(null, "", window.location.href);
+        window.onpopstate = () => {
+            window.history.pushState(null, "", window.location.href);
+        }
     };
 
     const handleMobileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -67,7 +72,7 @@ export default function Navbar() {
             open={isMenuOpen}
             onClose={handleMenuClose}
         >
-            <MenuItem onClick={handleMenuClose}><LogoutIcon/>LOGOUT</MenuItem>
+            <MenuItem onClick={handleMenuClose}><LogoutIcon />LOGOUT</MenuItem>
         </Menu>
     );
 

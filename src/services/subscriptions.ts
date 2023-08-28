@@ -55,9 +55,21 @@ export const renewSubscription = async (subscriptionId: string | undefined, isAc
 
 export const updateSubscription = async (subscription: any) => {
     try {
-        return await api.put("/subscribers/UpdateSubscription", subscription); 
+        return await api.put("/subscribers/UpdateSubscription", subscription);
     } catch (error) {
         console.log('Error while calling addSubscribers API', error);
+        // throw error;
+    }
+}
+export const refreshToken = async (subscriptionId: string | undefined) => {
+    try {
+        if (!subscriptionId) {
+            throw new Error("Subscription ID is missing");
+        }
+        const response = await api.put(`/subscribers/RefreshToken?SubscriptionId=${subscriptionId}`);
+        return response.data;
+    } catch (error) {
+        console.log('Error while calling getSubscription API', error);
         // throw error;
     }
 }

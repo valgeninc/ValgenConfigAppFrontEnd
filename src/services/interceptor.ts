@@ -2,7 +2,8 @@ import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
 
 
 const api: AxiosInstance = axios.create({
-    baseURL: "http://172.16.244.40:84/api",
+    // baseURL: "http://172.16.244.40:84/api", // production server URL
+    baseURL: "http://172.16.244.40:85/api"     // testing server URL
 });
 
 api.interceptors.request.use(

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { TextField, Button, Typography, Stack, Snackbar, Alert } from "@mui/material";
 import "./login.css";
 import { useNavigate } from "react-router-dom";
@@ -19,11 +19,17 @@ const Login = () => {
   const [isSnackbar, setIsSnackbar] = useState(false);
   const [message, setMessage] = useState('');
   const [severity, setSeverity] = useState<'success' | 'error'>('success');
+  const usernameInputRef = useRef<HTMLInputElement | null>(null);
 
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({
     username: '',
     password: '',
   });
+  useEffect(() => {
+    if (usernameInputRef.current) {
+      usernameInputRef.current.focus();
+    }
+  }, []);
   const handleUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setUsername(event.target.value);
   };
@@ -94,6 +100,7 @@ const Login = () => {
               <div className="input-item">
                 <TextField fullWidth variant="outlined" label="User Name" value={username}
                   onChange={handleUsernameChange}
+                  ref={usernameInputRef}
                   error={!!validationErrors.username}
                   helperText={validationErrors.username} />
               </div>

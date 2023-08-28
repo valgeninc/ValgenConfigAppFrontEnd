@@ -1,14 +1,14 @@
 {
   "files": {
-    "main.css": "/static/css/main.5f8a90f0.css",
-    "main.js": "/static/js/main.ad55426e.js",
+    "main.css": "/static/css/main.afe1b10d.css",
+    "main.js": "/static/js/main.ed38feda.js",
     "static/media/balloon-lg.jpg": "/static/media/balloon-lg.8ef5f5cb84ec03012004.jpg",
     "index.html": "/index.html",
-    "main.5f8a90f0.css.map": "/static/css/main.5f8a90f0.css.map",
-    "main.ad55426e.js.map": "/static/js/main.ad55426e.js.map"
+    "main.afe1b10d.css.map": "/static/css/main.afe1b10d.css.map",
+    "main.ed38feda.js.map": "/static/js/main.ed38feda.js.map"
   },
   "entrypoints": [
-    "static/css/main.5f8a90f0.css",
-    "static/js/main.ad55426e.js"
+    "static/css/main.afe1b10d.css",
+    "static/js/main.ed38feda.js"
   ]
 }
