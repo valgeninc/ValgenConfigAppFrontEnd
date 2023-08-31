@@ -447,8 +447,16 @@ const SubscriptionList = () => {
   const handleCopy = async (subscriberToken: string) => {
     try {
       if (subscriberToken) {
-        // tokenRef.current.select();
-        await navigator.clipboard.writeText(subscriberToken);
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(subscriberToken);
+        } else {
+          const copyInput = document.createElement('input');
+          copyInput.value = subscriberToken;
+          document.body.appendChild(copyInput);
+          copyInput.select();
+          document.execCommand('copy');
+          document.body.removeChild(copyInput);
+        }
       }
     } catch (error) {
       console.error('Copy failed:', error);
