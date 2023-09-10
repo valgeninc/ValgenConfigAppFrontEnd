@@ -1,7 +1,7 @@
 import {
   Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Box, Typography, Divider, Stack, Dialog, DialogContent, TextField, DialogActions, Grid, DialogTitle, Switch, AppBar, Toolbar, IconButton, Alert, FormControlLabel
 } from '@mui/material'
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Tooltip from '@mui/material/Tooltip';
 import Sidenav from '../sidenav/Sidenav';
@@ -24,14 +24,14 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import KeyboardDoubleArrowDownIcon from '@mui/icons-material/KeyboardDoubleArrowDown';
 import KeyboardDoubleArrowUpIcon from '@mui/icons-material/KeyboardDoubleArrowUp';
-import { createSubscription, getColumnList, getSubscription, renewSubscription, updateSubscription, refreshToken } from '../../services/subscriptions';
+import { createSubscription, getColumnList, getSubscription, renewSubscription, updateSubscription, refreshToken, getSubscriberName } from '../../services/subscriptions';
 import { SubscriptionData, IOption, ColumnObject } from "../../types/index";
 import RefreshIcon from '@mui/icons-material/Refresh';
 import Snackbar from '@mui/material/Snackbar';
 import ChangeCircleIcon from '@mui/icons-material/ChangeCircle';
 import { Oval } from 'react-loader-spinner'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import { Subscriptions } from '@mui/icons-material';
+import { DateValidationError } from '@mui/x-date-pickers';
 
 
 const dayjs = require('dayjs');
@@ -125,13 +125,30 @@ const SubscriptionList = () => {
 
   });
   const [isRequiredFulfilled, setIsRequiredFulfilled] = useState<boolean>(true);
+  const [error, setError] = useState<DateValidationError | null>(null);
+  const [subscriberName, setSubscriberName] = useState<string>("")
+
+  const errorMessage = useMemo(() => {
+    switch (error) {
+      case 'invalidDate': {
+        return 'date is not valid';
+      }
+      default: {
+        return '';
+      }
+    }
+  }, [error]);
 
 
   useEffect(() => {
+    getSubscriberNameById();
     getUsersSubscription();
     getColumns();
   }, []);
-
+  const getSubscriberNameById = async () => {
+    let response = await getSubscriberName(subscriberId);
+    setSubscriberName(response);
+  }
   const getColumns = async () => {
     setLoading(true);
     let columns = await getColumnList();
@@ -182,11 +199,17 @@ const SubscriptionList = () => {
   const handleEditDialogOpen = (subscription: SubscriptionData) => {
     try {
       const { startDate, endDate, ...rest } = subscription;
+      const updatedSubscriptionServicesModel = subscription.subscriptionServicesModel.map((service) => ({
+        ...service,
+        addtionalCompanyRecords: 0,
+        addtionalLocationRecords: 0,
+      }));
       // Set subscription data
       setSubscriptionData({
         ...rest,
         startDate: startDate ? dayjs(startDate) : startDate,
         endDate: endDate ? dayjs(endDate) : endDate,
+        subscriptionServicesModel: updatedSubscriptionServicesModel,
       });
 
       // Extract column data
@@ -332,8 +355,8 @@ const SubscriptionList = () => {
       createSubscriptionServicesModel: subscriptionData.subscriptionServicesModel?.map((model) => ({
         serviceId: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
         endPointDesc: model.endPointDesc,
-        companyRecords: (Number(model.companyRecords) + Number(model.addtionalCompanyRecords)),
-        locationRecords: (Number(model.locationRecords) + Number(model.addtionalLocationRecords)),
+        companyRecords: (model.addtionalCompanyRecords) !== null ? (Number(model.companyRecords) + Number(model.addtionalCompanyRecords)) : (model.companyRecords),
+        locationRecords: (model.addtionalLocationRecords) !== null ? (Number(model.locationRecords) + Number(model.addtionalLocationRecords)) : (model.locationRecords),
         addtionalCompanyRecords: (model.addtionalCompanyRecords),
         addtionalLocationRecords: (model.addtionalLocationRecords),
         columns: model.columns
@@ -367,8 +390,8 @@ const SubscriptionList = () => {
       createSubscriptionServicesModel: subscriptionData.subscriptionServicesModel?.map((model) => ({
         serviceId: model.serviceId,
         endPointDesc: model.endPointDesc,
-        companyRecords: (model.companyRecords),
-        locationRecords: (model.locationRecords),
+        companyRecords: (model.addtionalCompanyRecords) !== null ? (Number(model.companyRecords) + Number(model.addtionalCompanyRecords)) : (model.companyRecords),
+        locationRecords: (model.addtionalLocationRecords) !== null ? (Number(model.locationRecords) + Number(model.addtionalLocationRecords)) : (model.locationRecords),
         addtionalCompanyRecords: (model.addtionalCompanyRecords),
         addtionalLocationRecords: (model.addtionalLocationRecords),
         columns: model.columns
@@ -395,7 +418,7 @@ const SubscriptionList = () => {
       const isValid = checkRequiredValidation();
       const iscolumnValidated = columns.anonymizedColumnList.length > 0 && columns.identifiedColumnList.length > 0;
       setIsRequiredFulfilled(iscolumnValidated);
-      if (isValid && iscolumnValidated) {
+      if (isValid && iscolumnValidated && error !== 'invalidDate') {
         if (mode === 'add') {
           addSubscription();
         } else if (mode === 'edit') {
@@ -442,7 +465,6 @@ const SubscriptionList = () => {
   const handleCloseSnackbar = () => {
     setIsSnackbar(false);
   };
-  const tokenRef = useRef<HTMLInputElement>(null);
 
   const handleCopy = async (subscriberToken: string) => {
     try {
@@ -496,7 +518,7 @@ const SubscriptionList = () => {
                   component="div"
                   sx={{ padding: "20px" }}
                 >
-                  Subscriptions List
+                  {subscriberName}'s Subscriptions
                 </Typography>
                 <Typography
                   variant="h6"
@@ -540,8 +562,8 @@ const SubscriptionList = () => {
                     {subscriptionList && subscriptionList.length > 0 ? subscriptionList.map((subscription: SubscriptionData) => {
                       return (
                         <TableRow hover role="checkbox" tabIndex={-1} key={subscription.subscriptionId}>
-                          <TableCell align="center">{dayjs(subscription.startDate).format('DD-MM-YYYY')}</TableCell>
-                          <TableCell align="center">{dayjs(subscription.endDate).format('DD-MM-YYYY')}</TableCell>
+                          <TableCell align="center">{dayjs(subscription.startDate).format('MM-DD-YYYY')}</TableCell>
+                          <TableCell align="center">{dayjs(subscription.endDate).format('MM-DD-YYYY')}</TableCell>
                           <TableCell align="center">
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                               <Box sx={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -709,9 +731,14 @@ const SubscriptionList = () => {
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                       <DatePicker
                         value={subscriptionData.startDate ? dayjs(subscriptionData.startDate) : subscriptionData.startDate}
-                        format="DD-MM-YYYY"
+                        format="MM-DD-YYYY"
                         maxDate={dayjs(subscriptionData.endDate).subtract(1, 'day')}
-                        onError={err => console.error('error:', err)}
+                        onError={(newError) => setError(newError)}
+                        slotProps={{
+                          textField: {
+                            helperText: errorMessage,
+                          },
+                        }}
                         minDate={subscriptionData.startDate ? dayjs(subscriptionData.startDate) : new Date()}
                         onChange={(value: any) => {
                           try {
@@ -724,6 +751,8 @@ const SubscriptionList = () => {
                             console.error(e);
                           }
                         }}
+                        disabled={dayjs(subscriptionData.endDate) >= dayjs(new Date()) ? false : true}
+
                       />
                     </LocalizationProvider>
                   </Grid>
@@ -738,10 +767,14 @@ const SubscriptionList = () => {
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                       <DatePicker
                         value={subscriptionData.endDate ? dayjs(subscriptionData.endDate) : subscriptionData.endDate}
-                        format="DD-MM-YYYY"
-                        // minDate={subscriptionData.startDate}
+                        format="MM-DD-YYYY"
                         minDate={dayjs(subscriptionData.startDate).add(1, 'day')}
-                        disablePast={true}
+                        onError={(newError) => setError(newError)}
+                        slotProps={{
+                          textField: {
+                            helperText: errorMessage,
+                          },
+                        }}
                         onChange={(value: any) => {
                           try {
                             const utcDate = dayjs(value);
@@ -755,6 +788,7 @@ const SubscriptionList = () => {
                           }
 
                         }}
+
                       />
                     </LocalizationProvider>
                   </Grid>
@@ -884,7 +918,6 @@ const SubscriptionList = () => {
                     lang={dualListBoxLabels}
                     selected={selected}
                     showHeaderLabels={true}
-                    // preserveSelectOrder={true}
                     showOrderButtons
                     onChange={(selectedValues) => {
                       setSelected(selectedValues);

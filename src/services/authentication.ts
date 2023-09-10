@@ -17,6 +17,6 @@ export const login = async (
     });
     return response.data; // Return the response data from the API
   } catch (error) {
-    // throw error; // Throw an error if the API call fails
+    throw error; // Throw an error if the API call fails
   }
 };

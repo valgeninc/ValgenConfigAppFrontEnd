@@ -16,7 +16,7 @@ export const getSubscription = async (id: string | undefined) => {
 
         return response.data.result;
     } catch (error) {
-        console.log('Error while calling getSubscription API', error);
+        console.error('Error while calling getSubscription API', error);
         // throw error;
     }
 
@@ -72,4 +72,23 @@ export const refreshToken = async (subscriptionId: string | undefined) => {
         console.log('Error while calling getSubscription API', error);
         // throw error;
     }
+}
+export const getSubscriberName = async (id: string | undefined) => {
+    try {
+        if (!id) {
+            throw new Error("Subscriber  ID is missing");
+        }
+
+        const response = await api.get('/subscribers/GetSubscriberName', {
+            params: {
+                SubscriberId: id,
+            },
+        });
+
+        return response.data.result;
+    } catch (error) {
+        console.log('Error while calling getSubscription API', error);
+        throw error;
+    }
+
 }
