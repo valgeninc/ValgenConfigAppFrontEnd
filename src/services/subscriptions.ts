@@ -17,7 +17,7 @@ export const getSubscription = async (id: string | undefined) => {
         return response.data.result;
     } catch (error) {
         console.error('Error while calling getSubscription API', error);
-        // throw error;
+        throw error;
     }
 
 }
@@ -25,8 +25,8 @@ export const createSubscription = async (subscription: any) => {
     try {
         return await api.post("/subscribers/CreateSubscription", subscription);
     } catch (error) {
-        console.log('Error while calling addSubscribers API', error);
-        // throw error;
+        console.error('Error while calling addSubscribers API', error);
+        throw error;
     }
 }
 
@@ -36,8 +36,8 @@ export const getColumnList = async () => {
         return response.data.result;
 
     } catch (error) {
-        console.log('Error while calling getUsers api ', error);
-        // throw error;
+        console.error('Error while calling getUsers api ', error);
+        throw error;
     }
 }
 export const renewSubscription = async (subscriptionId: string | undefined, isActive: boolean) => {
@@ -48,8 +48,8 @@ export const renewSubscription = async (subscriptionId: string | undefined, isAc
     try {
         return await api.put(`/subscribers/RenewSubscription`, renewSubscriptionPayload);
     } catch (error) {
-        console.log('Error while calling editSubscribers API', error);
-        // throw error;
+        console.error('Error while calling editSubscribers API', error);
+        throw error;
     }
 }
 
@@ -57,8 +57,8 @@ export const updateSubscription = async (subscription: any) => {
     try {
         return await api.put("/subscribers/UpdateSubscription", subscription);
     } catch (error) {
-        console.log('Error while calling addSubscribers API', error);
-        // throw error;
+        console.error('Error while calling addSubscribers API', error);
+        throw error;
     }
 }
 export const refreshToken = async (subscriptionId: string | undefined) => {
@@ -69,8 +69,8 @@ export const refreshToken = async (subscriptionId: string | undefined) => {
         const response = await api.put(`/subscribers/RefreshToken?SubscriptionId=${subscriptionId}`);
         return response.data;
     } catch (error) {
-        console.log('Error while calling getSubscription API', error);
-        // throw error;
+        console.error('Error while calling getSubscription API', error);
+        throw error;
     }
 }
 export const getSubscriberName = async (id: string | undefined) => {
@@ -87,7 +87,7 @@ export const getSubscriberName = async (id: string | undefined) => {
 
         return response.data.result;
     } catch (error) {
-        console.log('Error while calling getSubscription API', error);
+        console.error('Error while calling getSubscription API', error);
         throw error;
     }
 

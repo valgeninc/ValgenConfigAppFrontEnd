@@ -36,8 +36,8 @@ export interface ISubscriptionValidationErrors {
 export interface SubscriptionData {
   subscriptionId: string;
   subscriberId: string;
-  startDate: Date | null;
-  endDate: Date | null;
+  startDate: string | null;
+  endDate: string | null;
   subscriberToken: string;
   isActive: boolean;
   maxRequests: number | null;

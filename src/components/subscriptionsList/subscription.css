@@ -58,3 +58,11 @@
 .MuiPaper-root.MuiPaper-elevation.MuiPaper-rounded.MuiPaper-elevation24.MuiDialog-paper.MuiDialog-paperScrollPaper.MuiDialog-paperWidthSm.MuiDialog-paperFullScreen.css-m9glnp-MuiPaper-root-MuiDialog-paper{
     overflow-y: hidden !important;
 }
+.subscriptions-loading{
+    position: absolute;
+    top: 65%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 10px;
+
+}

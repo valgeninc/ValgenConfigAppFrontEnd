@@ -4,6 +4,7 @@ import "./login.css";
 import { useNavigate } from "react-router-dom";
 import logo from "../../../assets/ProsperFleet.png"
 import { login } from "../../../services/authentication";
+import { ThreeDots } from 'react-loader-spinner';
 
 
 interface ValidationErrors {
@@ -20,7 +21,7 @@ const Login = () => {
   const [message, setMessage] = useState('');
   const [severity, setSeverity] = useState<'success' | 'error'>('success');
   const usernameInputRef = useRef<HTMLInputElement | null>(null);
-
+  const [loading, setLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({
     username: '',
     password: '',
@@ -61,10 +62,9 @@ const Login = () => {
     });
   };
   const handleLogin = async () => {
-    try {
-      await validateFormAsync(); // Validate the form using the promise
-      const response = await login(username, password);
-
+    setLoading(true);
+    await validateFormAsync();
+    await login(username, password).then((response) => {
       if (response.status === "OK") {
         setMessage("Login successful");
         setSeverity('success');
@@ -73,18 +73,19 @@ const Login = () => {
         // Store the user token in localStorage
         localStorage.setItem("userToken", userToken);
 
-        // Redirect to the dashboard or other protected route
-        navigate("/subscribers"); // Replace with your route
+       
+        navigate("/subscribers");
       } else {
         setSeverity('error');
         setMessage("Login failed. Please check your credentials.");
         setIsSnackbar(true);
       }
-    } catch (error) {
+    }).catch((error) => {
       setSeverity('error');
       setMessage("An error occurred. Please try again.");
       setIsSnackbar(true);
-    }
+    });
+    setLoading(false);
   };
 
   return (
@@ -115,20 +116,31 @@ const Login = () => {
                   helperText={validationErrors.password}
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') {
-                      e.preventDefault(); 
-                      handleLogin(); 
+                      e.preventDefault();
+                      handleLogin();
                     }
                   }}
                 />
               </div>
               <Stack spacing={2} direction="row" justifyContent="flex-end">
-                <Button className="btn login-btn" onClick={handleLogin}> Login</Button>
+                <Button className="btn login-btn" onClick={handleLogin}>
+                  {loading ? (
+                    <div className="loading"><ThreeDots
+                      height="40"
+                      width="40"
+                      color="#fff "
+                      visible={true}
+                      ariaLabel='oval-loading'
+                      radius="9"
+                    /></div>
+                  ) : (
+                    "Login")}</Button>
               </Stack>
             </form>
           </div>
         </div>
       </div>
-      <Snackbar open={isSnackbar} autoHideDuration={1000} onClose={handleCloseSnackbar} anchorOrigin={{vertical: 'top', horizontal: 'right'} }>
+      <Snackbar open={isSnackbar} autoHideDuration={1000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
         <Alert onClose={handleCloseSnackbar} severity={severity}>
           {message}
         </Alert>

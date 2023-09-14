@@ -1,7 +1,7 @@
 import {
   Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Box, Typography, Divider, Stack, Dialog, DialogContent, TextField, DialogActions, Grid, DialogTitle, Switch, AppBar, Toolbar, IconButton, Alert, FormControlLabel
 } from '@mui/material'
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Tooltip from '@mui/material/Tooltip';
 import Sidenav from '../sidenav/Sidenav';
@@ -32,7 +32,7 @@ import ChangeCircleIcon from '@mui/icons-material/ChangeCircle';
 import { Oval } from 'react-loader-spinner'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { DateValidationError } from '@mui/x-date-pickers';
-
+import { error } from 'console';
 
 const dayjs = require('dayjs');
 const initialValue: SubscriptionData = {
@@ -125,19 +125,32 @@ const SubscriptionList = () => {
 
   });
   const [isRequiredFulfilled, setIsRequiredFulfilled] = useState<boolean>(true);
-  const [error, setError] = useState<DateValidationError | null>(null);
+  const [startDateError, setStartDateError] = useState<DateValidationError | null>(null);
+  const [endDateError, setEndDateError] = useState<DateValidationError | null>(null);
   const [subscriberName, setSubscriberName] = useState<string>("")
 
-  const errorMessage = useMemo(() => {
-    switch (error) {
-      case 'invalidDate': {
+  const startDateErrorMessage = useMemo(() => {
+    switch (startDateError) {
+      case 'invalidDate':
+      case 'minDate':
+      case 'maxDate':
         return 'date is not valid';
-      }
-      default: {
+      default:
         return '';
-      }
     }
-  }, [error]);
+  }, [startDateError]);
+
+
+  const endDateErrorMessage = useMemo(() => {
+    switch (endDateError) {
+      case 'invalidDate':
+      case 'minDate':
+      case 'maxDate':
+        return 'date is not valid';
+      default:
+        return '';
+    }
+  }, [endDateError]);
 
 
   useEffect(() => {
@@ -145,51 +158,70 @@ const SubscriptionList = () => {
     getUsersSubscription();
     getColumns();
   }, []);
+
+
   const getSubscriberNameById = async () => {
-    let response = await getSubscriberName(subscriberId);
-    setSubscriberName(response);
+    setLoading(true);
+    await getSubscriberName(subscriberId).then((response) => {
+      setSubscriberName(response);
+    }).catch((err) => {
+      console.error(err);
+    });
+    setLoading(false);
+
   }
   const getColumns = async () => {
     setLoading(true);
-    let columns = await getColumnList();
-    if (columns) {
-      let options = responseColumnsListToModifiedColumnList(columns);
-      setColumn(options);
-    }
-    setLoading(false);
+    await getColumnList().then((columns) => {
+      if (columns) {
+        let options = responseColumnsListToModifiedColumnList(columns);
+        setColumn(options);
+      }
+      setLoading(false);
+    }).catch((error) => {
+      console.error(error);
+    });
+
   }
   const getUsersSubscription = async () => {
     setLoading(true);
-    let response = await getSubscription(subscriberId);
-    setsubscriptionList(response);
-    setIsActiveSubscription(response?.isActive);
-    setLoading(false);
+    await getSubscription(subscriberId).then((response) => {
+      setsubscriptionList(response);
+      setIsActiveSubscription(response?.isActive);
+      setLoading(false);
+    }).catch((error) => {
+      console.error(error);
+    });
+
   }
   const refreshSubscriptionToken = async () => {
-    const response = await refreshToken(subscriptionId);
-    if (response.status === "OK") {
-      const updatedSubscriptionList = subscriptionList.map((subscription: any) => {
-        if (subscription.subscriptionId === subscriptionId) {
-          return { ...subscription, subscriberToken: response.result };
-        }
-        return subscription;
-      })
-      setsubscriptionList(updatedSubscriptionList);
-      setMessage("Token updated successfully!!");
-      setSeverity('success');
-      setIsSnackbar(true);
-    } else {
-      setMessage(response.error);
-      setSeverity('error');
-      setIsSnackbar(true);
-    }
-    setIsRefreshToken(false);
+    await refreshToken(subscriptionId).then((response) => {
+      if (response.status === "OK") {
+        const updatedSubscriptionList = subscriptionList.map((subscription: any) => {
+          if (subscription.subscriptionId === subscriptionId) {
+            return { ...subscription, subscriberToken: response.result };
+          }
+          return subscription;
+        })
+        setsubscriptionList(updatedSubscriptionList);
+        setMessage("Token updated successfully!!");
+        setSeverity('success');
+        setIsSnackbar(true);
+      } else {
+        setMessage(response.error);
+        setSeverity('error');
+        setIsSnackbar(true);
+      }
+      setIsRefreshToken(false);
+    });
   }
   const handleDialogClose = () => {
     setIsRequiredFulfilled(true);
     setDialogOpen(false);
     setSubscriptionData(initialValue);
     setValidationErrors({});
+    setStartDateError(null);
+    setEndDateError(null);
   };
   const handleAddDialogOpen = () => {
     setMode('add');
@@ -207,8 +239,8 @@ const SubscriptionList = () => {
       // Set subscription data
       setSubscriptionData({
         ...rest,
-        startDate: startDate ? dayjs(startDate) : startDate,
-        endDate: endDate ? dayjs(endDate) : endDate,
+        startDate: startDate,
+        endDate: endDate,
         subscriptionServicesModel: updatedSubscriptionServicesModel,
       });
 
@@ -364,17 +396,22 @@ const SubscriptionList = () => {
     };
     payload.createSubscriptionServicesModel[0].columns = columns.anonymizedColumnList;
     payload.createSubscriptionServicesModel[1].columns = columns.identifiedColumnList;
-    const response = await createSubscription(payload);
-    if (response?.data.status === "OK") {
-      setMessage(response.data.result);
-      setSeverity('success');
-      setIsSnackbar(true);
-      getUsersSubscription();
-    } else {
-      setMessage("Something went wrong");
-      setSeverity('error');
-      setIsSnackbar(true);
-    }
+
+    await createSubscription(payload).then((response) => {
+      if (response?.data.status === "OK") {
+        setMessage(response.data.result);
+        setSeverity('success');
+        setIsSnackbar(true);
+        getUsersSubscription();
+      } else {
+        setMessage("Something went wrong");
+        setSeverity('error');
+        setIsSnackbar(true);
+      }
+    }).catch((error) => {
+      console.error(error);
+    });
+
   }
 
   const editSubscriber = async () => {
@@ -400,17 +437,20 @@ const SubscriptionList = () => {
     payload.createSubscriptionServicesModel[0].columns = columns.anonymizedColumnList;
     payload.createSubscriptionServicesModel[1].columns = columns.identifiedColumnList;
 
-    const response = await updateSubscription(payload);
-    if (response?.data.status === "OK") {
-      setMessage(response.data.result);
-      setSeverity('success');
-      setIsSnackbar(true);
-      getUsersSubscription();
-    } else {
-      setMessage("Something went wrong");
-      setSeverity('error');
-      setIsSnackbar(true);
-    }
+    await updateSubscription(payload).then((response) => {
+      if (response?.data.status === "OK") {
+        setMessage(response.data.result);
+        setSeverity('success');
+        setIsSnackbar(true);
+        getUsersSubscription();
+      } else {
+        setMessage("Something went wrong");
+        setSeverity('error');
+        setIsSnackbar(true);
+      }
+    }).catch(error => {
+      console.error(error);
+    });
   }
   const handleSaveUpdate = () => {
     try {
@@ -418,7 +458,7 @@ const SubscriptionList = () => {
       const isValid = checkRequiredValidation();
       const iscolumnValidated = columns.anonymizedColumnList.length > 0 && columns.identifiedColumnList.length > 0;
       setIsRequiredFulfilled(iscolumnValidated);
-      if (isValid && iscolumnValidated && error !== 'invalidDate') {
+      if (isValid && iscolumnValidated && startDateError == null && endDateError == null) {
         if (mode === 'add') {
           addSubscription();
         } else if (mode === 'edit') {
@@ -428,7 +468,7 @@ const SubscriptionList = () => {
       }
 
     } catch (error) {
-
+      console.error(error);
     }
   };
   const handleChangeStatus = (isActive: boolean, subscriptionId: string) => {
@@ -442,8 +482,7 @@ const SubscriptionList = () => {
   }
 
   const activateDeactivateSubscription = async () => {
-    try {
-      const response: any = await renewSubscription(subscriptionId, isActiveSubscription);
+    await renewSubscription(subscriptionId, isActiveSubscription).then((response: any) => {
       if (response.data.status === "OK") {
         setMessage(response.data.result);
         setSeverity('success');
@@ -454,12 +493,11 @@ const SubscriptionList = () => {
       }
 
       setIsSnackbar(true);
-    } catch (error) {
+    }).catch((error) => {
       setMessage('An error occurred while making the API call.');
       setSeverity('error');
       setIsSnackbar(true);
-    }
-
+    });
     setIsSubscriptionStatus(false);
   }
   const handleCloseSnackbar = () => {
@@ -492,19 +530,7 @@ const SubscriptionList = () => {
         <Box height={70} />
         <Box sx={{ display: 'flex' }}>
           <Sidenav />
-          {loading ? (<div className="loading"><Oval
-            height={40}
-            width={40}
-            color="#59bdd2"
-            wrapperStyle={{}}
-            wrapperClass=""
-            visible={true}
-            ariaLabel='oval-loading'
-            secondaryColor="#59bdd2"
-            strokeWidth={2}
-            strokeWidthSecondary={2}
-
-          /></div>) : (<Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+          <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
             <Tooltip title="Back to Subscribers">
               <Button sx={{ marginBottom: 1 }} variant="text" onClick={() => navigate("/subscribers")} startIcon={<ArrowBackIcon />}>
                 Back
@@ -518,7 +544,7 @@ const SubscriptionList = () => {
                   component="div"
                   sx={{ padding: "20px" }}
                 >
-                  {subscriberName}'s Subscriptions
+                  {loading ? "" : (`${subscriberName}'s Subscriptions`)}
                 </Typography>
                 <Typography
                   variant="h6"
@@ -559,7 +585,22 @@ const SubscriptionList = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {subscriptionList && subscriptionList.length > 0 ? subscriptionList.map((subscription: SubscriptionData) => {
+                    {loading ? (
+                      <TableRow>
+                        <TableCell align='center' sx={{ fontSize: 20, padding: 10 }} colSpan={6}>
+                          <div className="subscriptions-loading"><Oval
+                            height={40}
+                            width={40}
+                            color="#59bdd2"
+                            visible={true}
+                            ariaLabel='oval-loading'
+                            secondaryColor="#59bdd2"
+                            strokeWidth={2}
+                            strokeWidthSecondary={2}
+                          /></div>
+                        </TableCell>
+                      </TableRow>
+                    ) : (subscriptionList && subscriptionList.length > 0 ? subscriptionList.map((subscription: SubscriptionData) => {
                       return (
                         <TableRow hover role="checkbox" tabIndex={-1} key={subscription.subscriptionId}>
                           <TableCell align="center">{dayjs(subscription.startDate).format('MM-DD-YYYY')}</TableCell>
@@ -622,13 +663,13 @@ const SubscriptionList = () => {
                       <TableCell align="center" sx={{ fontSize: 20, padding: 10 }} colSpan={6}>
                         No Subscriptions Found
                       </TableCell>
-                    </TableRow>)}
+                    </TableRow>))}
                   </TableBody>
                 </Table>
               </TableContainer>
             </Paper>
 
-          </Box>)}
+          </Box>
         </Box>
         <Snackbar open={isSnackbar} autoHideDuration={1000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
           <Alert onClose={handleCloseSnackbar} severity={severity}>
@@ -733,26 +774,25 @@ const SubscriptionList = () => {
                         value={subscriptionData.startDate ? dayjs(subscriptionData.startDate) : subscriptionData.startDate}
                         format="MM-DD-YYYY"
                         maxDate={dayjs(subscriptionData.endDate).subtract(1, 'day')}
-                        onError={(newError) => setError(newError)}
+                        onError={(newError) => setStartDateError(newError)}
                         slotProps={{
                           textField: {
-                            helperText: errorMessage,
+                            helperText: startDateErrorMessage,
                           },
                         }}
-                        minDate={subscriptionData.startDate ? dayjs(subscriptionData.startDate) : new Date()}
+                        minDate={dayjs()}
                         onChange={(value: any) => {
                           try {
-                            const utcDate = dayjs(value);
                             setSubscriptionData((prevData) => ({
                               ...prevData,
-                              startDate: utcDate,
+                              startDate: value,
                             }));
                           } catch (e) {
                             console.error(e);
                           }
                         }}
-                        disabled={dayjs(subscriptionData.endDate) >= dayjs(new Date()) ? false : true}
 
+                        disabled={dayjs(subscriptionData.endDate) >= dayjs(new Date()) ? false : true}
                       />
                     </LocalizationProvider>
                   </Grid>
@@ -766,21 +806,22 @@ const SubscriptionList = () => {
                   <Grid item xs={5}>
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                       <DatePicker
-                        value={subscriptionData.endDate ? dayjs(subscriptionData.endDate) : subscriptionData.endDate}
+                        value={dayjs(subscriptionData.endDate ? dayjs(subscriptionData.endDate) : subscriptionData.endDate)}
                         format="MM-DD-YYYY"
                         minDate={dayjs(subscriptionData.startDate).add(1, 'day')}
-                        onError={(newError) => setError(newError)}
+                        onError={(newError) => {
+                          setEndDateError(newError)
+                        }}
                         slotProps={{
                           textField: {
-                            helperText: errorMessage,
+                            helperText: endDateErrorMessage,
                           },
                         }}
                         onChange={(value: any) => {
                           try {
-                            const utcDate = dayjs(value);
                             setSubscriptionData((prevData) => ({
                               ...prevData,
-                              endDate: utcDate,
+                              endDate: value,
                             }));
 
                           } catch (e) {

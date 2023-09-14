@@ -1,5 +1,5 @@
 import { AxiosResponse } from 'axios';
-import api  from "../services/interceptor";
+import api from "../services/interceptor";
 
 export const getSubscribers = async (): Promise<any> => {
     try {
@@ -7,26 +7,26 @@ export const getSubscribers = async (): Promise<any> => {
         return response.data.result;
 
     } catch (error) {
-        console.log('Error while calling getUsers api ', error);
-        // throw error;
+        console.error('Error while calling getUsers api ', error);
+        throw error;
     }
 }
 
 
 export const addSubscribers = async (subscribers: any) => {
     try {
-        return await api.post("/Subscribers", subscribers); // Use the interceptor-enabled 'api' instance
+        return await api.post("/Subscribers", subscribers);
     } catch (error) {
-        console.log('Error while calling addSubscribers API', error);
-        // throw error;
+        console.error('Error while calling addSubscribers API', error);
+        throw error;
     }
 }
 
 export const editSubscribers = async (id: string, subscribers: any) => {
     try {
-        return await api.put(`/Subscribers/${id}`, subscribers); // Use the interceptor-enabled 'api' instance
+        return await api.put(`/Subscribers/${id}`, subscribers);
     } catch (error) {
-        console.log('Error while calling editSubscribers API', error);
-        // throw error;
+        console.error('Error while calling editSubscribers API', error);
+        throw error;
     }
 }

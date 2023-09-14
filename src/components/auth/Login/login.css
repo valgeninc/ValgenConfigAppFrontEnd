@@ -79,6 +79,8 @@
     background-color: #59bdd2 !important;
     color: #fff !important;
     padding: 0.6rem 2.5rem !important;
+    height: 2.5rem;
+    width:7rem;
 }
 .login-btn:hover {
     color: #fff;
