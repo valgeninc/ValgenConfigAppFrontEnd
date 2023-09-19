@@ -32,7 +32,6 @@ import ChangeCircleIcon from '@mui/icons-material/ChangeCircle';
 import { Oval } from 'react-loader-spinner'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { DateValidationError } from '@mui/x-date-pickers';
-import { error } from 'console';
 
 const dayjs = require('dayjs');
 const initialValue: SubscriptionData = {
@@ -53,6 +52,8 @@ const initialValue: SubscriptionData = {
       locationRecords: null,
       addtionalCompanyRecords: null,
       addtionalLocationRecords: null,
+      remainingCompanyRecords:null,
+      remainingLocationRecords:null,
       columns: []
     },
     {
@@ -63,6 +64,8 @@ const initialValue: SubscriptionData = {
       locationRecords: null,
       addtionalCompanyRecords: null,
       addtionalLocationRecords: null,
+      remainingCompanyRecords:null,
+      remainingLocationRecords:null,
       columns: []
     },
   ]
@@ -132,7 +135,6 @@ const SubscriptionList = () => {
   const startDateErrorMessage = useMemo(() => {
     switch (startDateError) {
       case 'invalidDate':
-      case 'minDate':
       case 'maxDate':
         return 'date is not valid';
       default:
@@ -144,7 +146,6 @@ const SubscriptionList = () => {
   const endDateErrorMessage = useMemo(() => {
     switch (endDateError) {
       case 'invalidDate':
-      case 'minDate':
       case 'maxDate':
         return 'date is not valid';
       default:
@@ -780,7 +781,7 @@ const SubscriptionList = () => {
                             helperText: startDateErrorMessage,
                           },
                         }}
-                        minDate={dayjs()}
+                        minDate={subscriptionData.startDate ? dayjs(subscriptionData.startDate) : dayjs(new Date())}
                         onChange={(value: any) => {
                           try {
                             setSubscriptionData((prevData) => ({
@@ -846,6 +847,7 @@ const SubscriptionList = () => {
                   <Stack direction="row" alignItems="center">
                     <Grid item xs={6}>
                       <Typography variant="subtitle1" sx={{ textAlign: 'start' }}>Company Records Limit</Typography>
+                      <Typography variant="subtitle1" sx={{ textAlign: 'start', fontSize: '10px', color: 'green' }}>Remaining Credits: {subscriptionData.subscriptionServicesModel?.[0].remainingCompanyRecords?subscriptionData.subscriptionServicesModel?.[0].remainingCompanyRecords:0}</Typography>
                     </Grid>
                     <Grid item xs={4}>
                       <TextField
@@ -867,6 +869,7 @@ const SubscriptionList = () => {
                   <Stack direction="row" alignItems="center">
                     <Grid item xs={6}>
                       <Typography variant="subtitle1" sx={{ textAlign: 'start' }}>Location Records Limit</Typography>
+                      <Typography variant="subtitle1" sx={{ textAlign: 'start', fontSize: '10px', color: 'green' }}>Remaining Credits: {subscriptionData.subscriptionServicesModel?.[0].remainingLocationRecords?subscriptionData.subscriptionServicesModel?.[0].remainingLocationRecords:0}</Typography>
                     </Grid>
                     <Grid item xs={4}>
                       <TextField
@@ -902,6 +905,7 @@ const SubscriptionList = () => {
                   <Stack direction="row" alignItems="center">
                     <Grid item xs={6}>
                       <Typography variant="subtitle1" sx={{ textAlign: 'start' }}>Company Records Limit</Typography>
+                      <Typography variant="subtitle1" sx={{ textAlign: 'start', fontSize: '10px', color: 'green' }}>Remaining Credits: {subscriptionData.subscriptionServicesModel?.[1].remainingCompanyRecords?subscriptionData.subscriptionServicesModel?.[1].remainingCompanyRecords:0}</Typography>
                     </Grid>
                     <Grid item xs={4}>
                       <TextField
@@ -923,6 +927,7 @@ const SubscriptionList = () => {
                   <Stack direction="row" alignItems="center">
                     <Grid item xs={6}>
                       <Typography variant="subtitle1" sx={{ textAlign: 'start' }}>Location Records Limit</Typography>
+                      <Typography variant="subtitle1" sx={{ textAlign: 'start', fontSize: '10px', color: 'green' }}>Remaining Credits: {subscriptionData.subscriptionServicesModel?.[1].remainingLocationRecords?subscriptionData.subscriptionServicesModel?.[1].remainingLocationRecords:0}</Typography>
                     </Grid>
                     <Grid item xs={4} >
                       <TextField
