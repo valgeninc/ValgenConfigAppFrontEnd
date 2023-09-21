@@ -52,8 +52,6 @@ interface ServiceModel {
   locationRecords: number | null;
   addtionalCompanyRecords: number | null;
   addtionalLocationRecords: number | null;
-  remainingCompanyRecords: number | null,
-  remainingLocationRecords: number | null,
   columns: string[];
 }
 export interface IOption {

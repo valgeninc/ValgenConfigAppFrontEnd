@@ -24,7 +24,7 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import KeyboardDoubleArrowDownIcon from '@mui/icons-material/KeyboardDoubleArrowDown';
 import KeyboardDoubleArrowUpIcon from '@mui/icons-material/KeyboardDoubleArrowUp';
-import { createSubscription, getColumnList, getSubscription, renewSubscription, updateSubscription, refreshToken, getSubscriberName } from '../../services/subscriptions';
+import { createSubscription, getServicesTracking, getColumnList, getSubscription, renewSubscription, updateSubscription, refreshToken, getSubscriberName } from '../../services/subscriptions';
 import { SubscriptionData, IOption, ColumnObject } from "../../types/index";
 import RefreshIcon from '@mui/icons-material/Refresh';
 import Snackbar from '@mui/material/Snackbar';
@@ -52,8 +52,6 @@ const initialValue: SubscriptionData = {
       locationRecords: null,
       addtionalCompanyRecords: null,
       addtionalLocationRecords: null,
-      remainingCompanyRecords:null,
-      remainingLocationRecords:null,
       columns: []
     },
     {
@@ -64,8 +62,6 @@ const initialValue: SubscriptionData = {
       locationRecords: null,
       addtionalCompanyRecords: null,
       addtionalLocationRecords: null,
-      remainingCompanyRecords:null,
-      remainingLocationRecords:null,
       columns: []
     },
   ]
@@ -130,7 +126,8 @@ const SubscriptionList = () => {
   const [isRequiredFulfilled, setIsRequiredFulfilled] = useState<boolean>(true);
   const [startDateError, setStartDateError] = useState<DateValidationError | null>(null);
   const [endDateError, setEndDateError] = useState<DateValidationError | null>(null);
-  const [subscriberName, setSubscriberName] = useState<string>("")
+  const [subscriberName, setSubscriberName] = useState<string>("");
+  const [remainingCredits,setRemainingCredits] = useState<any>({});
 
   const startDateErrorMessage = useMemo(() => {
     switch (startDateError) {
@@ -229,8 +226,20 @@ const SubscriptionList = () => {
     setSelected([]);
     setDialogOpen(true);
   };
+
+  const servicesTracking = async (subscriptionId:string) => {
+    await getServicesTracking(subscriptionId).then((response) => {
+      if (response.data.status === "OK") {
+        console.log(response.data.result);
+        setRemainingCredits(response.data.result);
+      } 
+    }).catch((error) => {
+      console.error(error);
+    });
+  }
   const handleEditDialogOpen = (subscription: SubscriptionData) => {
     try {
+       servicesTracking(subscription?.subscriptionId);
       const { startDate, endDate, ...rest } = subscription;
       const updatedSubscriptionServicesModel = subscription.subscriptionServicesModel.map((service) => ({
         ...service,
@@ -781,7 +790,7 @@ const SubscriptionList = () => {
                             helperText: startDateErrorMessage,
                           },
                         }}
-                        minDate={subscriptionData.startDate ? dayjs(subscriptionData.startDate) : dayjs(new Date())}
+                        minDate={(startDateError == null && endDateError == null) && dayjs(subscriptionData.startDate) ? dayjs(subscriptionData.startDate) : dayjs(new Date())}
                         onChange={(value: any) => {
                           try {
                             setSubscriptionData((prevData) => ({
@@ -847,7 +856,7 @@ const SubscriptionList = () => {
                   <Stack direction="row" alignItems="center">
                     <Grid item xs={6}>
                       <Typography variant="subtitle1" sx={{ textAlign: 'start' }}>Company Records Limit</Typography>
-                      <Typography variant="subtitle1" sx={{ textAlign: 'start', fontSize: '10px', color: 'green' }}>Remaining Credits: {subscriptionData.subscriptionServicesModel?.[0].remainingCompanyRecords?subscriptionData.subscriptionServicesModel?.[0].remainingCompanyRecords:0}</Typography>
+                      <Typography variant="subtitle1" sx={{ textAlign: 'start', fontSize: '10px', color: 'green' }}>Remaining Credits: {remainingCredits?.anonymizedCompanyRecords ? remainingCredits?.anonymizedCompanyRecords : 0}</Typography>
                     </Grid>
                     <Grid item xs={4}>
                       <TextField
@@ -869,7 +878,7 @@ const SubscriptionList = () => {
                   <Stack direction="row" alignItems="center">
                     <Grid item xs={6}>
                       <Typography variant="subtitle1" sx={{ textAlign: 'start' }}>Location Records Limit</Typography>
-                      <Typography variant="subtitle1" sx={{ textAlign: 'start', fontSize: '10px', color: 'green' }}>Remaining Credits: {subscriptionData.subscriptionServicesModel?.[0].remainingLocationRecords?subscriptionData.subscriptionServicesModel?.[0].remainingLocationRecords:0}</Typography>
+                      <Typography variant="subtitle1" sx={{ textAlign: 'start', fontSize: '10px', color: 'green' }}>Remaining Credits: {remainingCredits?.anonymizedLocationRecords ? remainingCredits?.anonymizedLocationRecords : 0}</Typography>
                     </Grid>
                     <Grid item xs={4}>
                       <TextField
@@ -905,7 +914,7 @@ const SubscriptionList = () => {
                   <Stack direction="row" alignItems="center">
                     <Grid item xs={6}>
                       <Typography variant="subtitle1" sx={{ textAlign: 'start' }}>Company Records Limit</Typography>
-                      <Typography variant="subtitle1" sx={{ textAlign: 'start', fontSize: '10px', color: 'green' }}>Remaining Credits: {subscriptionData.subscriptionServicesModel?.[1].remainingCompanyRecords?subscriptionData.subscriptionServicesModel?.[1].remainingCompanyRecords:0}</Typography>
+                      <Typography variant="subtitle1" sx={{ textAlign: 'start', fontSize: '10px', color: 'green' }}>Remaining Credits: {remainingCredits?.identifiedCompanyRecords ? remainingCredits?.identifiedCompanyRecords : 0}</Typography>
                     </Grid>
                     <Grid item xs={4}>
                       <TextField
@@ -927,7 +936,7 @@ const SubscriptionList = () => {
                   <Stack direction="row" alignItems="center">
                     <Grid item xs={6}>
                       <Typography variant="subtitle1" sx={{ textAlign: 'start' }}>Location Records Limit</Typography>
-                      <Typography variant="subtitle1" sx={{ textAlign: 'start', fontSize: '10px', color: 'green' }}>Remaining Credits: {subscriptionData.subscriptionServicesModel?.[1].remainingLocationRecords?subscriptionData.subscriptionServicesModel?.[1].remainingLocationRecords:0}</Typography>
+                      <Typography variant="subtitle1" sx={{ textAlign: 'start', fontSize: '10px', color: 'green' }}>Remaining Credits: {remainingCredits?.identifiedLocationRecords ? remainingCredits?.identifiedLocationRecords : 0}</Typography>
                     </Grid>
                     <Grid item xs={4} >
                       <TextField

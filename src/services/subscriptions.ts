@@ -92,3 +92,21 @@ export const getSubscriberName = async (id: string | undefined) => {
     }
 
 }
+
+export const getServicesTracking = async (id: string | undefined) => {
+    try {
+        if (!id) {
+            throw new Error("Subscription ID is missing");
+        }
+
+        return await api.get('/subscribers/GetServicesTracking', {
+            params: {
+                SubscriptionId: id,
+            },
+        });
+    } catch (error) {
+        console.error('Error while calling getServicesTracking API', error);
+        throw error;
+    }
+
+}
