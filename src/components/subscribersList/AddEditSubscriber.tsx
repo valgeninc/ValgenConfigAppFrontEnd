@@ -50,7 +50,6 @@ const AddEditSubscriber = ({
 
   const handleDialogClose = () => {
     setErrors({});
-    setFormData({ name: '', email: '', phone: '' });
   };
   const handleSaveUpdate = async (e: any) => {
     e.preventDefault();

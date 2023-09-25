@@ -51,6 +51,7 @@ const Subscribers = () => {
   const handleAddDialogOpen = () => {
     setMode('add');
     setDialogOpen(true);
+    setSubscriberData(initialValue);
   };
 
 

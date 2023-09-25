@@ -1,7 +1,7 @@
 import {
   Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Box, Typography, Divider, Stack, Dialog, DialogContent, TextField, DialogActions, Grid, DialogTitle, Switch, AppBar, Toolbar, IconButton, Alert, FormControlLabel
 } from '@mui/material'
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { ChangeEvent, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Tooltip from '@mui/material/Tooltip';
 import Sidenav from '../sidenav/Sidenav';
@@ -127,13 +127,13 @@ const SubscriptionList = () => {
   const [startDateError, setStartDateError] = useState<DateValidationError | null>(null);
   const [endDateError, setEndDateError] = useState<DateValidationError | null>(null);
   const [subscriberName, setSubscriberName] = useState<string>("");
-  const [remainingCredits,setRemainingCredits] = useState<any>({});
+  const [remainingCredits, setRemainingCredits] = useState<any>({});
 
   const startDateErrorMessage = useMemo(() => {
     switch (startDateError) {
-      case 'invalidDate':
-      case 'maxDate':
-        return 'date is not valid';
+      case 'invalidDate': return 'Date is not valid';
+      case 'minDate': return "Start date should not be less than  today's date";
+      case 'maxDate': return 'Start date should not be greater than or equal to end date';
       default:
         return '';
     }
@@ -142,9 +142,9 @@ const SubscriptionList = () => {
 
   const endDateErrorMessage = useMemo(() => {
     switch (endDateError) {
-      case 'invalidDate':
-      case 'maxDate':
-        return 'date is not valid';
+      case 'invalidDate': return 'Date is not valid';
+      case 'minDate': return 'End date should not be less than or equal to start date';
+      case 'maxDate': return 'End date should not be greater than start date';
       default:
         return '';
     }
@@ -227,19 +227,19 @@ const SubscriptionList = () => {
     setDialogOpen(true);
   };
 
-  const servicesTracking = async (subscriptionId:string) => {
+  const servicesTracking = async (subscriptionId: string) => {
     await getServicesTracking(subscriptionId).then((response) => {
       if (response.data.status === "OK") {
         console.log(response.data.result);
         setRemainingCredits(response.data.result);
-      } 
+      }
     }).catch((error) => {
       console.error(error);
     });
   }
   const handleEditDialogOpen = (subscription: SubscriptionData) => {
     try {
-       servicesTracking(subscription?.subscriptionId);
+      servicesTracking(subscription?.subscriptionId);
       const { startDate, endDate, ...rest } = subscription;
       const updatedSubscriptionServicesModel = subscription.subscriptionServicesModel.map((service) => ({
         ...service,
@@ -321,12 +321,13 @@ const SubscriptionList = () => {
 
 
   const handleServiceModelInputChange = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    event: any,
     index: number,
     fieldName: string,
   ) => {
-    const newValue = parseFloat(event.target.value);
-    if (fieldName === "companyRecords" && index === 0 && (newValue < 1 || newValue > 1000000)) {
+    debugger
+    const newValue = (event.target.value);
+    if (fieldName === "companyRecords" && index === 0 && ((newValue) < 1 || newValue > 1000000)) {
       setValidationErrors((prevErrors: any) => ({ ...prevErrors, companyRecords1: "between 1 to 1000000" }));
     } else if (fieldName === "locationRecords" && index === 0 && (newValue < 1 || newValue > 1000000)) {
       setValidationErrors((prevErrors: any) => ({ ...prevErrors, locationRecords1: "between 1 to 1000000" }));
@@ -531,6 +532,21 @@ const SubscriptionList = () => {
     } catch (error) {
       console.error('Copy failed:', error);
     }
+  };
+  const handleInput = (event: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+
+    const numericValue = value.replace(/[^0-9]/g, '');
+
+    handleInputChange({ target: { name: name, value: numericValue } });
+  };
+
+  const handleServiceModelInput = (event: any, index: number, fieldName: string) => {
+    const { name, value } = event.target;
+
+    const numericValue = value.replace(/[^0-9]/g, '');
+    console.log(numericValue);
+    handleServiceModelInputChange({ target: { value: numericValue } }, index, fieldName);
   };
 
   return (
@@ -743,6 +759,7 @@ const SubscriptionList = () => {
                       name="maxRequests"
                       value={subscriptionData.maxRequests}
                       onChange={handleInputChange}
+                      onInput={handleInput}
                       size="small"
                       margin="normal"
                       error={Boolean(validationErrors.maxRequests)}
@@ -759,12 +776,13 @@ const SubscriptionList = () => {
                   <Grid item xs={5}  >
                     <TextField
                       type={"number"}
-                      inputProps={{ min: 2, max: 60 }}
+                      inputProps={{ min: 1, max: 60 }}
                       fullWidth
                       required={true}
                       name="timeWindow"
                       value={subscriptionData.timeWindow}
                       onChange={handleInputChange}
+                      onInput={handleInput}
                       size="small"
                       margin="normal"
                       error={Boolean(validationErrors.timeWindow)}
@@ -780,7 +798,7 @@ const SubscriptionList = () => {
                   </Grid>
                   <Grid item xs={5}>
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
-                      <DatePicker
+                      {mode === 'add' ? <DatePicker
                         value={subscriptionData.startDate ? dayjs(subscriptionData.startDate) : subscriptionData.startDate}
                         format="MM-DD-YYYY"
                         maxDate={dayjs(subscriptionData.endDate).subtract(1, 'day')}
@@ -790,7 +808,7 @@ const SubscriptionList = () => {
                             helperText: startDateErrorMessage,
                           },
                         }}
-                        minDate={(startDateError == null && endDateError == null) && dayjs(subscriptionData.startDate) ? dayjs(subscriptionData.startDate) : dayjs(new Date())}
+                        minDate={dayjs(new Date())}
                         onChange={(value: any) => {
                           try {
                             setSubscriptionData((prevData) => ({
@@ -802,8 +820,36 @@ const SubscriptionList = () => {
                           }
                         }}
 
-                        disabled={dayjs(subscriptionData.endDate) >= dayjs(new Date()) ? false : true}
-                      />
+                        // disabled={(endDateError === 'invalidDate') || dayjs(subscriptionData.endDate) >= dayjs(new Date()) ? false : true}
+                      /> : <DatePicker
+                        value={subscriptionData.startDate ? dayjs(subscriptionData.startDate) : subscriptionData.startDate}
+                        format="MM-DD-YYYY"
+                        maxDate={dayjs(subscriptionData.endDate).subtract(1, 'day')}
+                        onError={(newError) => setStartDateError(newError)}
+                        slotProps={{
+                          textField: {
+                            helperText: startDateErrorMessage,
+                          },
+                        }}
+                        minDate={(startDateError == null) && dayjs(subscriptionData.startDate) ? dayjs(subscriptionData.startDate) : dayjs(new Date())}
+                        onChange={(value: any) => {
+                          try {
+                            if(startDateError == null){
+                              setSubscriptionData((prevData) => ({
+                                ...prevData,
+                                startDate: value,
+                              }));
+                            }else{
+                              return;
+                            }
+                     
+                          } catch (e) {
+                            console.error(e);
+                          }
+                        }}
+
+                        disabled={(endDateError === 'invalidDate') || dayjs(subscriptionData.endDate) >= dayjs(new Date()) ? false : true}
+                      />}
                     </LocalizationProvider>
                   </Grid>
                 </Stack>
@@ -815,7 +861,7 @@ const SubscriptionList = () => {
                   </Grid>
                   <Grid item xs={5}>
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
-                      <DatePicker
+                      {mode === 'add' ? <DatePicker
                         value={dayjs(subscriptionData.endDate ? dayjs(subscriptionData.endDate) : subscriptionData.endDate)}
                         format="MM-DD-YYYY"
                         minDate={dayjs(subscriptionData.startDate).add(1, 'day')}
@@ -840,7 +886,30 @@ const SubscriptionList = () => {
 
                         }}
 
-                      />
+                      /> : <DatePicker
+                        value={dayjs(subscriptionData.endDate ? dayjs(subscriptionData.endDate) : subscriptionData.endDate)}
+                        format="MM-DD-YYYY"
+                        minDate={dayjs(subscriptionData.startDate).add(1, 'day')}
+                        onError={(newError) => {
+                          setEndDateError(newError)
+                        }}
+                        slotProps={{
+                          textField: {
+                            helperText: endDateErrorMessage,
+                          },
+                        }}
+                        onChange={(value: any) => {
+                          try {
+                            setSubscriptionData((prevData) => ({
+                              ...prevData,
+                              endDate: value,
+                            }));
+
+                          } catch (e) {
+                            console.error(e);
+                          }
+                        }}
+                      />}
                     </LocalizationProvider>
                   </Grid>
                 </Stack>
@@ -865,6 +934,7 @@ const SubscriptionList = () => {
                         fullWidth
                         value={subscriptionData.subscriptionServicesModel?.[0].companyRecords}
                         onChange={(event) => handleServiceModelInputChange(event, 0, 'companyRecords')}
+                        onInput={(event) => handleServiceModelInput(event, 0, 'companyRecords')}
                         name="companyRecords"
                         size="small"
                         margin="normal"
@@ -886,6 +956,7 @@ const SubscriptionList = () => {
                         fullWidth
                         value={subscriptionData.subscriptionServicesModel?.[0].locationRecords}
                         onChange={(event) => handleServiceModelInputChange(event, 0, 'locationRecords')}
+                        onInput={(event) => handleServiceModelInput(event, 0, 'locationRecords')}
                         type={"number"}
                         name="locationRecords"
                         size="small"
@@ -923,6 +994,7 @@ const SubscriptionList = () => {
                         fullWidth
                         value={subscriptionData.subscriptionServicesModel?.[1].companyRecords}
                         onChange={(event) => handleServiceModelInputChange(event, 1, 'companyRecords')}
+                        onInput={(event) => handleServiceModelInput(event, 1, 'companyRecords')}
                         name="companyRecords"
                         size="small"
                         margin="normal"
@@ -946,6 +1018,7 @@ const SubscriptionList = () => {
                         name="locationRecords"
                         value={subscriptionData.subscriptionServicesModel?.[1].locationRecords}
                         onChange={(event) => handleServiceModelInputChange(event, 1, 'locationRecords')}
+                        onInput={(event) => handleServiceModelInput(event, 1, 'locationRecords')}
                         size="small"
                         margin="normal"
                         error={Boolean(validationErrors.locationRecords2)}
