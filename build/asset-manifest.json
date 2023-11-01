@@ -1,0 +1,14 @@
+{
+  "files": {
+    "main.css": "/static/css/main.46704467.css",
+    "main.js": "/static/js/main.18191924.js",
+    "static/media/balloon-lg.jpg": "/static/media/balloon-lg.8ef5f5cb84ec03012004.jpg",
+    "index.html": "/index.html",
+    "main.46704467.css.map": "/static/css/main.46704467.css.map",
+    "main.18191924.js.map": "/static/js/main.18191924.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.46704467.css",
+    "static/js/main.18191924.js"
+  ]
+}
